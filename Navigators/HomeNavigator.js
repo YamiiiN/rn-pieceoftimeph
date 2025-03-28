@@ -2,7 +2,8 @@ import React from 'react';
 import { createStackNavigator } from "@react-navigation/stack";
 
 import ProductContainer from "../Screens/Product/ProductContainer";
-import SingleProduct from "../Screens/Product/SingleProduct"; 
+import SingleProduct from "../Screens/Product/SingleProduct";
+import CategoryProducts from "../Screens/Product/CategoryProducts";
 
 const Stack = createStackNavigator();
 
@@ -16,19 +17,19 @@ function MyStack() {
                     headerShown: false,
                 }}
             />
-            {/* <Stack.Screen
-                name='Product Detail'
+            <Stack.Screen
+                name='SingleProduct'
                 component={SingleProduct}
                 options={{
                     headerShown: false,
                 }}
-            /> */}
-              <Stack.Screen
-                name='Product Detail'
-                component={SingleProduct}
-                options={{
-                    headerShown: false,
-                }}
+            />
+            <Stack.Screen
+                name='CategoryProducts'
+                component={CategoryProducts}
+                options={({ route }) => ({
+                    title: route.params.category, 
+                })}
             />
         </Stack.Navigator>
     );

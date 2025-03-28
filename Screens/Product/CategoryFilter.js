@@ -1,7 +1,33 @@
-import React from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, View, Text, Image } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, ScrollView, TouchableOpacity, View, Text, Image, ActivityIndicator } from 'react-native';
+import axios from 'axios';
+import { useNavigation } from '@react-navigation/native';
+import baseURL from '../../assets/common/baseUrl';
 
-const CategoryFilter = (props) => {
+const CategoryFilter = () => {
+    const [categories, setCategories] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const navigation = useNavigation(); 
+
+    useEffect(() => {
+        const fetchCategoriesWithImages = async () => {
+            try {
+                const response = await axios.get(`${baseURL}/product/getOneProductPerCategory`);
+                setCategories(response.data.products);
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchCategoriesWithImages();
+    }, []);
+
+    if (loading) {
+        return <ActivityIndicator size="large" color="red" />;
+    }
+
     return (
         <View style={styles.container}>
             <View style={styles.headerContainer}>
@@ -16,45 +42,25 @@ const CategoryFilter = (props) => {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.categoriesContainer}
             >
-                <TouchableOpacity style={styles.categoryItem}>
-                    <View style={styles.categoryImageContainer}>
-                        <Image
-                            source={{ uri: 'https://res.cloudinary.com/dlqclovym/image/upload/v1742724105/daytona1_hix75v.webp' }}
-                            style={styles.categoryImage}
-                        />
-                    </View>
-                    <Text style={styles.categoryName}>Diving{'\n'}Watch</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.categoryItem}>
-                    <View style={styles.categoryImageContainer}>
-                        <Image
-                            source={{ uri: 'https://res.cloudinary.com/dlqclovym/image/upload/v1742724105/daytona1_hix75v.webp' }}
-                            style={styles.categoryImage}
-                        />
-                    </View>
-                    <Text style={styles.categoryName}>Classic{'\n'}Watch</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.categoryItem}>
-                    <View style={styles.categoryImageContainer}>
-                        <Image
-                            source={{ uri: 'https://res.cloudinary.com/dlqclovym/image/upload/v1742724105/daytona1_hix75v.webp' }}
-                            style={styles.categoryImage}
-                        />
-                    </View>
-                    <Text style={styles.categoryName}>Pilot{'\n'}Watch</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.categoryItem}>
-                    <View style={styles.categoryImageContainer}>
-                        <Image
-                            source={{ uri: 'https://res.cloudinary.com/dlqclovym/image/upload/v1742724105/daytona1_hix75v.webp' }}
-                            style={styles.categoryImage}
-                        />
-                    </View>
-                    <Text style={styles.categoryName}>Smart{'\n'}Watch</Text>
-                </TouchableOpacity>
+                {categories.length > 0 ? (
+                    categories.map((item, index) => (
+                        <TouchableOpacity 
+                            key={index} 
+                            style={styles.categoryItem}
+                            onPress={() => navigation.navigate('CategoryProducts', { category: item.category })} 
+                        >
+                            <View style={styles.categoryImageContainer}>
+                                <Image
+                                    source={{ uri: item.firstImage || 'https://via.placeholder.com/60' }}
+                                    style={styles.categoryImage}
+                                />
+                            </View>
+                            <Text style={styles.categoryName}>{item.category}</Text>
+                        </TouchableOpacity>
+                    ))
+                ) : (
+                    <Text style={styles.noCategories}>No categories available.</Text>
+                )}
             </ScrollView>
         </View>
     );
@@ -105,6 +111,12 @@ const styles = StyleSheet.create({
     categoryName: {
         fontSize: 12,
         textAlign: 'center',
+    },
+    noCategories: {
+        fontSize: 14,
+        textAlign: 'center',
+        color: 'gray',
+        marginTop: 10,
     },
 });
 

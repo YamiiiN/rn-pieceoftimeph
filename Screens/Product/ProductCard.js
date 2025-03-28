@@ -13,7 +13,7 @@ const ProductCard = ({ item }) => {
     return (
         <TouchableOpacity
             style={styles.card}
-            onPress={() => navigation.navigate("Product Detail", { item: item })}
+            onPress={() => navigation.navigate("SingleProduct", { item: item })}
         >
             <Image
                 style={styles.image}
@@ -42,7 +42,7 @@ const ProductCard = ({ item }) => {
 
 const styles = StyleSheet.create({
     card: {
-        width: (width - 40) / 2,  // Accounting for padding and margin
+        width: (width - 40) / 2, 
         marginBottom: 16,
         backgroundColor: 'white',
         borderRadius: 10,
