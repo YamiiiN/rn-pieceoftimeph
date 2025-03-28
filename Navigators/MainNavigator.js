@@ -62,6 +62,7 @@ const MainNavigator = () => {
         name="Cart"
         component={CartNavigator}
         options={{
+          headerShown: false,
           tabBarIcon: ({ color }) => {
             return <Icon
               name="cart-sharp"

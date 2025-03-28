@@ -27,7 +27,7 @@ function MyStack() {
   )
 }
 
-export default function CartsNavigator() {
+export default function CartNavigator() {
   return <MyStack />
 }
 
