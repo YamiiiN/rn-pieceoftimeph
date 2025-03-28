@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Dimensions } from 'react-native';
-import ProductCard from './ProductCard'; 
+import ProductCard from './ProductCard';
 import baseURL from '../../assets/common/baseUrl';
 import axios from 'axios';
+
+import Header from '../Shared/Header';
+import Banner from '../Shared/Banner';
+import CategoryFilter from './CategoryFilter';
 
 const { width } = Dimensions.get("window");
 
@@ -12,7 +16,7 @@ const ProductList = () => {
 
     const fetchProducts = async () => {
         try {
-            const res = await axios.get(`${baseURL}/product/get/all`); 
+            const res = await axios.get(`${baseURL}/product/get/all`);
             setProducts(res.data.products);
         } catch (error) {
             console.error('Failed to fetch products:', error);
@@ -27,28 +31,50 @@ const ProductList = () => {
 
     const renderItem = ({ item }) => <ProductCard item={item} />;
 
+    // const ListHeader = () => (
+    //     <View style={styles.headerContainer}>
+    //         <Text style={styles.header}>All Products</Text>
+    //         <TouchableOpacity>
+    //             <Text style={styles.viewAll}>View All</Text>
+    //         </TouchableOpacity>
+    //     </View>
+    // );
     const ListHeader = () => (
-        <View style={styles.headerContainer}>
-            <Text style={styles.header}>All Products</Text>
-            <TouchableOpacity>
-                <Text style={styles.viewAll}>View All</Text>
-            </TouchableOpacity>
+        <View>
+            <Banner />
+            <CategoryFilter />
+            <View style={styles.headerContainer}>
+                <Text style={styles.header}>All Products</Text>
+                <TouchableOpacity>
+                    <Text style={styles.viewAll}>View All</Text>
+                </TouchableOpacity>
+            </View>
         </View>
     );
 
     return (
-        <View style={styles.container}>
-            <FlatList
-                data={products}
-                keyExtractor={(item) => item._id}
-                renderItem={renderItem}
-                numColumns={2}
-                ListHeaderComponent={ListHeader}
-                columnWrapperStyle={styles.columnWrapper}
-                contentContainerStyle={styles.listContainer}
-                showsVerticalScrollIndicator={false}
-            />
-        </View>
+        // <View style={styles.container}>
+        //     <FlatList
+        //         data={products}
+        //         keyExtractor={(item) => item._id}
+        //         renderItem={renderItem}
+        //         numColumns={2}
+        //         ListHeaderComponent={ListHeader}
+        //         columnWrapperStyle={styles.columnWrapper}
+        //         contentContainerStyle={styles.listContainer}
+        //         showsVerticalScrollIndicator={false}
+        //     />
+        // </View>
+        <FlatList
+            data={products}
+            keyExtractor={(item) => item._id}
+            renderItem={renderItem}
+            numColumns={2}
+            ListHeaderComponent={ListHeader}  // Add the header here
+            columnWrapperStyle={styles.columnWrapper}
+            contentContainerStyle={styles.listContainer}
+            showsVerticalScrollIndicator={false}
+        />
     );
 };
 

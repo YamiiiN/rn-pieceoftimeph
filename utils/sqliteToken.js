@@ -1,10 +1,13 @@
 import * as SQLite from 'expo-sqlite';
+import * as FileSystem from 'expo-file-system';
 
 let db;
 
 export const initDatabase = async () => {
   try {
     db = await SQLite.openDatabaseAsync('auth.db');
+
+    console.log('Database path:', FileSystem.documentDirectory + 'SQLite/auth.db');
     await db.execAsync(
       'CREATE TABLE IF NOT EXISTS tokens (id INTEGER PRIMARY KEY NOT NULL, token TEXT, userId TEXT, expiresAt INTEGER);'
     );
@@ -13,6 +16,23 @@ export const initDatabase = async () => {
     throw error;
   }
 };
+
+// const copyDatabase = async () => {
+//   const internalDbPath = FileSystem.documentDirectory + 'SQLite/auth.db';
+//   const accessiblePath = FileSystem.cacheDirectory + 'auth.db';
+
+//   try {
+//     await FileSystem.copyAsync({
+//       from: internalDbPath,
+//       to: accessiblePath,
+//     });
+//     console.log('Database copied successfully:', accessiblePath);
+//   } catch (error) {
+//     console.error('Error copying database:', error);
+//   }
+// };
+
+// copyDatabase();
 
 export const storeToken = async (token, userId, expiresAt) => {
   try {

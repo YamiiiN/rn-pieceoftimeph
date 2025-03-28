@@ -7,14 +7,19 @@ import ProductList from './ProductList';
 
 const ProductContainer = () => {
   return (
+    // <SafeAreaView style={styles.container}>
+    //   <StatusBar backgroundColor="white" barStyle="dark-content" />
+    //   <Header />
+    //   <ScrollView showsVerticalScrollIndicator={false}>
+    //     <Banner />
+    //     <CategoryFilter />
+    //     <ProductList />
+    //   </ScrollView>
+    // </SafeAreaView>
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="white" barStyle="dark-content" />
       <Header />
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <Banner />
-        <CategoryFilter />
-        <ProductList />
-      </ScrollView>
+      <ProductList /> 
     </SafeAreaView>
   );
 };
