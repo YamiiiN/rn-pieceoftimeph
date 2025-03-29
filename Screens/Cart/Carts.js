@@ -19,6 +19,12 @@ const Cart = () => {
     const dispatch = useDispatch();
     const cartItems = useSelector(state => state.cart.cartItems);
 
+    console.log("Current Cart Items:", cartItems.map(item => ({
+        id: item.id,
+        name: item.name,
+        quantity: item.quantity
+    }))); // pang debug
+
     const deliveryFee = 250;
     const subTotal = cartItems
         .filter(item => item.selected)
@@ -65,7 +71,7 @@ const Cart = () => {
             </View>
             <TouchableOpacity onPress={() => dispatch(removeFromCart(item.id))}>
                 <Icon name="trash" size={24} color="red" />
-                
+
             </TouchableOpacity>
         </View>
     );
@@ -96,9 +102,6 @@ const Cart = () => {
                 )}
             </ScrollView>
 
-
-
-
             <View style={styles.summaryContainer}>
                 <View style={styles.summaryRow}>
                     <Text style={styles.summaryLabel}>Sub Total</Text>
@@ -112,15 +115,17 @@ const Cart = () => {
                     <Text style={styles.totalLabel}>Total</Text>
                     <Text style={styles.totalValue}>₱{total.toLocaleString()}</Text>
                 </View>
+
                 <TouchableOpacity
                     style={[
                         styles.checkoutButton,
-                        cartItems.length === 0 ? styles.disabledButton : {}
+                        cartItems.length === 0 || !cartItems.some(item => item.selected) ? styles.disabledButton : {}
                     ]}
-                    disabled={cartItems.length === 0}
+                    disabled={cartItems.length === 0 || !cartItems.some(item => item.selected)}
                 >
                     <Text style={styles.checkoutButtonText}>Check out</Text>
                 </TouchableOpacity>
+
             </View>
         </View>
     );
