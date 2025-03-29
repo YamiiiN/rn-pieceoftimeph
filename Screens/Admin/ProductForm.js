@@ -38,12 +38,12 @@ const ProductForm = (props) => {
     const [loading, setLoading] = useState(false);
     
     // check if user is admin
-    useEffect(() => {
-        if (user && user.role !== 'admin') {
-            Alert.alert("Access Denied", "Only admin users can access this screen");
-            navigation.goBack();
-        }
-    }, [user]);
+    // useEffect(() => {
+    //     if (user && user.role !== 'admin') {
+    //         Alert.alert("Access Denied", "Only admin users can access this screen");
+    //         navigation.goBack();
+    //     }
+    // }, [user]);
 
     useEffect(() => {
         if (!props.route.params) {

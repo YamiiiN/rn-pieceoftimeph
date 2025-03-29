@@ -3,10 +3,11 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Dimensions } from '
 import ProductCard from './ProductCard';
 import Banner from '../Shared/Banner';
 import CategoryFilter from './CategoryFilter';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 const { width } = Dimensions.get("window");
 
-const ProductList = ({ products }) => {
+const ProductList = ({ products, priceRange, setModalVisible }) => {
     const renderItem = ({ item }) => <ProductCard item={item} />;
 
     const ListHeader = () => (
@@ -15,8 +16,12 @@ const ProductList = ({ products }) => {
             <CategoryFilter />
             <View style={styles.headerContainer}>
                 <Text style={styles.header}>All Products</Text>
-                <TouchableOpacity>
-                    <Text style={styles.viewAll}>View All</Text>
+
+                <TouchableOpacity style={styles.priceContainer} onPress={() => setModalVisible(true)}>
+                    <FontAwesome name="tags" size={16} color="red" />
+                    <Text style={styles.priceText}>
+                        ₱{priceRange.min.toLocaleString()} - ₱{priceRange.max.toLocaleString()}
+                    </Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -34,6 +39,7 @@ const ProductList = ({ products }) => {
             showsVerticalScrollIndicator={false}
         />
     );
+   
 };
 
 const styles = StyleSheet.create({
@@ -44,6 +50,14 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 10,
         marginBottom: 10,
+    },
+    priceContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#f8f8f8',
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 5,
     },
     header: {
         fontSize: 18,
@@ -59,6 +73,19 @@ const styles = StyleSheet.create({
     columnWrapper: {
         justifyContent: 'space-between',
         paddingHorizontal: 16,
+    },
+    priceContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#f8f8f8',
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 5,
+    },
+    priceText: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        marginLeft: 5,
     },
 });
 

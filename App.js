@@ -53,7 +53,7 @@ const Stack = createStackNavigator();
 export default function App() {
   return (
     <AuthProvider>
-      <Provider store={store}>
+      {/* <Provider store={store}>
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
           <Stack.Screen name="ProductForm" component={ProductForm} />
@@ -63,14 +63,14 @@ export default function App() {
         </Stack.Navigator>
         <Toast />
       </NavigationContainer>
-      </Provider>
+      </Provider> */}
       
-      {/* <Provider store={store}>
+      <Provider store={store}>
         <NavigationContainer>
           <MainNavigator />
         </NavigationContainer>
         <Toast />
-      </Provider> */}
+      </Provider>
       
     </AuthProvider>
   );
