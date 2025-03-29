@@ -90,7 +90,6 @@ const ProductForm = (props) => {
         ];
         setMovements(movementList);
         
-        // Set brands directly from the product model's enum values
         const brandList = [
             "Seiko",
             "Citizen",
@@ -179,7 +178,7 @@ const ProductForm = (props) => {
     
         try {
             if (item !== null) {
-                await dispatch(updateProductAsync(item._id, productData, token));
+                await dispatch(updateProduct(item._id, productData, token));
                 Toast.show({
                     topOffset: 60,
                     type: "success",

@@ -55,7 +55,7 @@ export default function App() {
     <AuthProvider>
       <Provider store={store}>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="ProductForm" screenOptions={{ headerShown: false }}>
+        <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
           <Stack.Screen name="ProductForm" component={ProductForm} />
           <Stack.Screen name="Login" component={Login} />
           <Stack.Screen name="Register" component={Register} />

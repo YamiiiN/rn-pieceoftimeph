@@ -55,7 +55,7 @@ export const createProduct = (productData, token) => async (dispatch) => {
             payload: data.product
         });
 
-        // After creating, fetch updated product list
+        // fetch updated product list
         dispatch(listProducts());
     } catch (error) {
         dispatch({
@@ -84,7 +84,7 @@ export const updateProduct = (id, productData, token) => async (dispatch) => {
             payload: data.product
         });
 
-        // After updating, fetch updated product list
+        // fetch updated product list
         dispatch(listProducts());
     } catch (error) {
         dispatch({
@@ -109,7 +109,7 @@ export const deleteProduct = (id, token) => async (dispatch) => {
 
         dispatch({ type: PRODUCT_DELETE_SUCCESS });
 
-        // After deleting, fetch updated product list
+        // fetch updated product list
         dispatch(listProducts());
     } catch (error) {
         dispatch({
