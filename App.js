@@ -46,28 +46,32 @@ import { Provider } from 'react-redux';
 import store from './Redux/store';
 import Cart from './Screens/Cart/Carts';
 
+import ProductForm from './Screens/Admin/ProductForm';
+
 const Stack = createStackNavigator();
 
 export default function App() {
   return (
     <AuthProvider>
-      {/* <NavigationContainer>
-        <Stack.Navigator initialRouteName="MainNavigator" screenOptions={{ headerShown: false }}>
+      {/* <Provider store={store}>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="ProductForm" screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="ProductForm" component={ProductForm} />
           <Stack.Screen name="Login" component={Login} />
           <Stack.Screen name="Register" component={Register} />
           <Stack.Screen name="MainNavigator" component={MainNavigator} options={{ headerShown: false }} />
         </Stack.Navigator>
         <Toast />
-      </NavigationContainer> */}
-
+      </NavigationContainer>
+      </Provider> */}
+      
       <Provider store={store}>
         <NavigationContainer>
           <MainNavigator />
-          {/* <Cart /> */}
         </NavigationContainer>
         <Toast />
-
       </Provider>
+      
     </AuthProvider>
   );
 }
