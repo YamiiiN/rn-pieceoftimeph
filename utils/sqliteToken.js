@@ -17,23 +17,6 @@ export const initDatabase = async () => {
   }
 };
 
-// const copyDatabase = async () => {
-//   const internalDbPath = FileSystem.documentDirectory + 'SQLite/auth.db';
-//   const accessiblePath = FileSystem.cacheDirectory + 'auth.db';
-
-//   try {
-//     await FileSystem.copyAsync({
-//       from: internalDbPath,
-//       to: accessiblePath,
-//     });
-//     console.log('Database copied successfully:', accessiblePath);
-//   } catch (error) {
-//     console.error('Error copying database:', error);
-//   }
-// };
-
-// copyDatabase();
-
 export const storeToken = async (token, userId, expiresAt) => {
   try {
     await db.runAsync(

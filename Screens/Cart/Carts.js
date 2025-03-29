@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
     View,
     Text,
@@ -9,59 +9,15 @@ import {
 } from 'react-native';
 import { CheckBox } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector, useDispatch } from 'react-redux';
+import { removeFromCart, updateQuantity, toggleSelection } from '../../Redux/Actions/cartActions';
+import Toast from 'react-native-toast-message';
 
 const Cart = () => {
     const navigation = useNavigation();
-
-    const [cartItems, setCartItems] = useState([
-        {
-            id: 1,
-            name: 'Seiko Bellmatic',
-            category: 'Dive',
-            price: 13500,
-            quantity: 1,
-            selected: true,
-            image: "http://res.cloudinary.com/dlqclovym/image/upload/v1742728198/ewxzmsppyk2b6gl0ahqi.webp"
-        },
-        {
-            id: 2,
-            name: 'Seiko Bellmatic Two-Toned',
-            category: 'Classic',
-            price: 13500,
-            quantity: 1,
-            selected: false,
-            image: "http://res.cloudinary.com/dlqclovym/image/upload/v1742728198/ewxzmsppyk2b6gl0ahqi.webp"
-        },
-        {
-            id: 3,
-            name: 'Cartier Ballon Bleu',
-            category: 'Pilot',
-            price: 13500,
-            quantity: 1,
-            selected: false,
-            image: "http://res.cloudinary.com/dlqclovym/image/upload/v1742728198/ewxzmsppyk2b6gl0ahqi.webp"
-        },
-        {
-            id: 4,
-            name: 'Seiko Bellmatic Two-Toned',
-            category: 'Classic',
-            price: 13500,
-            quantity: 1,
-            selected: false,
-            image: "http://res.cloudinary.com/dlqclovym/image/upload/v1742728198/ewxzmsppyk2b6gl0ahqi.webp"
-        },
-        {
-            id: 5,
-            name: 'Seiko Bellmatic Two-Toned',
-            category: 'Classic',
-            price: 13500,
-            quantity: 1,
-            selected: false,
-            image: "http://res.cloudinary.com/dlqclovym/image/upload/v1742728198/ewxzmsppyk2b6gl0ahqi.webp"
-        },
-    ]);
-
+    const dispatch = useDispatch();
+    const cartItems = useSelector(state => state.cart.cartItems);
 
     const deliveryFee = 250;
     const subTotal = cartItems
@@ -70,29 +26,11 @@ const Cart = () => {
 
     const total = subTotal > 0 ? subTotal + deliveryFee : 0;
 
-    const toggleItemSelection = (id) => {
-        setCartItems(cartItems.map(item =>
-            item.id === id ? { ...item, selected: !item.selected } : item
-        ));
-    };
-
-    const changeQuantity = (id, change) => {
-        setCartItems(cartItems.map(item =>
-            item.id === id
-                ? { ...item, quantity: Math.max(1, item.quantity + change) }
-                : item
-        ));
-    };
-
-    const removeItem = (id) => {
-        setCartItems(cartItems.filter(item => item.id !== id));
-    };
-
     const renderCartItem = (item) => (
-        <View style={styles.cartItemContainer} key={item.id}>
+        <View key={item.id} style={styles.cartItemContainer}>
             <CheckBox
                 checked={item.selected}
-                onPress={() => toggleItemSelection(item.id)}
+                onPress={() => dispatch(toggleSelection(item.id))}
                 containerStyle={styles.checkboxContainer}
                 checkedColor="black"
             />
@@ -107,27 +45,35 @@ const Cart = () => {
                     <View style={styles.quantityContainer}>
                         <TouchableOpacity
                             style={styles.circleButtonMinus}
-                            onPress={() => changeQuantity(item.id, -1)}
+                            onPress={() => {
+                                if (item.quantity > 1) {
+                                    dispatch(updateQuantity(item.id, item.quantity - 1));
+                                }
+                            }}
                         >
                             <Icon name="remove" size={20} color="black" />
                         </TouchableOpacity>
                         <Text style={styles.quantityText}>{item.quantity}</Text>
                         <TouchableOpacity
                             style={styles.circleButtonAdd}
-                            onPress={() => changeQuantity(item.id, 1)}
+                            onPress={() => dispatch(updateQuantity(item.id, item.quantity + 1))}
                         >
                             <Icon name="add" size={20} color="white" />
                         </TouchableOpacity>
                     </View>
                 </View>
             </View>
+            <TouchableOpacity onPress={() => dispatch(removeFromCart(item.id))}>
+                <Icon name="trash" size={24} color="red" />
+                
+            </TouchableOpacity>
         </View>
     );
 
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <TouchableOpacity onPress={() =>  navigation.goBack()}>
+                <TouchableOpacity onPress={() => navigation.goBack()}>
                     <Icon name="arrow-back" size={24} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>My Cart</Text>
@@ -137,8 +83,21 @@ const Cart = () => {
             </View>
 
             <ScrollView style={styles.scrollView}>
-                {cartItems.map(renderCartItem)}
+                {cartItems.length > 0 ? (
+                    cartItems.map((item, index) => (
+                        <View key={item.id || index}>
+                            {renderCartItem(item)}
+                        </View>
+                    ))
+                ) : (
+                    <View style={styles.emptyCartContainer}>
+                        <Text style={styles.emptyCartText}>Your cart is empty.</Text>
+                    </View>
+                )}
             </ScrollView>
+
+
+
 
             <View style={styles.summaryContainer}>
                 <View style={styles.summaryRow}>
@@ -153,7 +112,13 @@ const Cart = () => {
                     <Text style={styles.totalLabel}>Total</Text>
                     <Text style={styles.totalValue}>₱{total.toLocaleString()}</Text>
                 </View>
-                <TouchableOpacity style={styles.checkoutButton}>
+                <TouchableOpacity
+                    style={[
+                        styles.checkoutButton,
+                        cartItems.length === 0 ? styles.disabledButton : {}
+                    ]}
+                    disabled={cartItems.length === 0}
+                >
                     <Text style={styles.checkoutButtonText}>Check out</Text>
                 </TouchableOpacity>
             </View>
@@ -290,6 +255,20 @@ const styles = StyleSheet.create({
     checkoutButtonText: {
         color: 'white',
         fontWeight: 'bold'
+    },
+    disabledButton: {
+        backgroundColor: '#a9a9a9',
+    },
+    emptyCartContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20
+    },
+    emptyCartText: {
+        fontSize: 16,
+        color: 'gray',
+        marginTop: 20
     }
 });
 

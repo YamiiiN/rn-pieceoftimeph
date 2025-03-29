@@ -10,29 +10,46 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
+import { addToCart } from '../../Redux/Actions/cartActions'; 
+import Toast from 'react-native-toast-message';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 const SingleProduct = () => {
     const route = useRoute();
     const navigation = useNavigation();
+    const dispatch = useDispatch();
+    
     const { item } = route.params;
-
     const [selectedImage, setSelectedImage] = useState(item.images[0]?.url);
     const [quantity, setQuantity] = useState(1);
     const [showFullDescription, setShowFullDescription] = useState(false);
 
-    const incrementQuantity = () => {
-        setQuantity(quantity + 1);
-    };
+    const incrementQuantity = () => setQuantity(quantity + 1);
+    const decrementQuantity = () => quantity > 1 && setQuantity(quantity - 1);
 
-    const decrementQuantity = () => {
-        if (quantity > 1) {
-            setQuantity(quantity - 1);
-        }
-    };
+    const handleAddToCart = () => {
+        const cartItem = {
+            id: item._id,
+            name: item.name,
+            image: item.images[0]?.url,
+            price: item.sell_price,
+            quantity,
+            category: item.category || "Uncategorized"
+        };
 
-    const formattedPrice = new Intl.NumberFormat('en-US').format(item.sell_price);
+        // console.log("Dispatching addToCart:", cartItem); // pang debug
+        dispatch(addToCart(cartItem));
+
+        Toast.show({
+            type: 'success',
+            text1: 'Added to Cart',
+            text2: `${item.name} has been added successfully!`,
+            position: 'top',
+        });
+    };
+    
 
     return (
         <View style={styles.container}>
@@ -63,13 +80,12 @@ const SingleProduct = () => {
                         <Text style={styles.productName}>{item.name}</Text>
                         <View style={styles.ratingContainer}>
                             <Icon name="star" size={16} color="#FFC107" />
-                            <Text style={styles.rating}>{item.rating}4.5</Text>
+                            <Text style={styles.rating}>{item.rating}</Text>
                         </View>
                     </View>
                     <Text style={styles.brand}>{item.brand}</Text>
-                    <Text style={styles.price}>₱ {formattedPrice}</Text>
+                    <Text style={styles.price}>₱ {new Intl.NumberFormat('en-US').format(item.sell_price)}</Text>
 
-                    {/* <Text style={styles.descriptionTitle}>Description</Text> */}
                     <Text style={styles.description}>
                         {showFullDescription ? item.description : `${item.description.slice(0, 100)}...`}
                     </Text>
@@ -90,10 +106,12 @@ const SingleProduct = () => {
                         <Icon name="add" size={20} color="white" />
                     </TouchableOpacity>
                 </View>
-                <TouchableOpacity style={styles.addToCartButton}>
+                <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart}>
                     <Text style={styles.addToCartText}>Add to Cart</Text>
                 </TouchableOpacity>
             </View>
+
+            <Toast />
         </View>
     );
 };
@@ -251,5 +269,5 @@ const styles = StyleSheet.create({
     },
 });
 
-export default SingleProduct;
 
+export default SingleProduct;

@@ -18,7 +18,7 @@
 //       {/* <Register /> */}
 //     </NavigationContainer>  
 
-    
+
 //   );
 // }
 
@@ -42,20 +42,32 @@ import Login from './Screens/User/Login';
 import Register from './Screens/User/Register';
 import MainNavigator from './Navigators/MainNavigator';
 import { AuthProvider } from './Context/Auth';
+import { Provider } from 'react-redux';
+import store from './Redux/store';
+import Cart from './Screens/Cart/Carts';
 
 const Stack = createStackNavigator();
 
 export default function App() {
   return (
     <AuthProvider>
-      <NavigationContainer>
+      {/* <NavigationContainer>
         <Stack.Navigator initialRouteName="MainNavigator" screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Login" component={Login} />
           <Stack.Screen name="Register" component={Register} />
           <Stack.Screen name="MainNavigator" component={MainNavigator} options={{ headerShown: false }} />
         </Stack.Navigator>
         <Toast />
-      </NavigationContainer>
+      </NavigationContainer> */}
+
+      <Provider store={store}>
+        <NavigationContainer>
+          <MainNavigator />
+          {/* <Cart /> */}
+        </NavigationContainer>
+        <Toast />
+
+      </Provider>
     </AuthProvider>
   );
 }

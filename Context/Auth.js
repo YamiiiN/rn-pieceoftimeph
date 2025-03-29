@@ -12,10 +12,10 @@ export const AuthProvider = ({ children }) => {
     const loadToken = async () => {
       await initDatabase(); // initialize db
 
-    // await deleteToken(); // for testing purpose lang
+      // await deleteToken(); // for testing purpose lang
 
       const storedToken = await getToken(); // retrieve stored token
-        console.log('Debug: Retrieved Token from SQLite ->', storedToken);
+      console.log('Debug: Retrieved Token from SQLite ->', storedToken);
       if (storedToken) {
         setToken(storedToken.token);
         setUser(storedToken.userId);
@@ -28,11 +28,11 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (jwtToken, userData) => {
     console.log('Login userData:', JSON.stringify(userData, null, 2));
-    
+
     // check which ID field exists
     const userId = userData._id || userData.id;
     console.log('Using userId:', userId);
-    
+
     setToken(jwtToken);
     setUser(userData);
     await storeToken(jwtToken, userData._id, Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
@@ -52,3 +52,9 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
+
+
+
+
+
+
