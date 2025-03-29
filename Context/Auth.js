@@ -13,7 +13,7 @@ export const AuthProvider = ({ children }) => {
     const loadToken = async () => {
       await initDatabase(); // initialize db
 
-      await deleteToken(); // for testing purpose lang
+      // await deleteToken(); // for testing purpose lang
 
       const storedToken = await getToken(); // retrieve stored token
       console.log('Debug: Retrieved Token from SQLite ->', storedToken);
