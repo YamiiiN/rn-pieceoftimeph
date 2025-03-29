@@ -2,7 +2,7 @@ import React from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-const Header = () => {
+const Header = ({ searchQuery, onSearchChange }) => {
     return (
         <View style={styles.container}>
             <TouchableOpacity style={styles.menuButton}>
@@ -15,7 +15,14 @@ const Header = () => {
                     style={styles.searchInput}
                     placeholder="Search here..."
                     placeholderTextColor="gray"
+                    value={searchQuery}
+                    onChangeText={(text) => onSearchChange(text)} 
                 />
+                {searchQuery.length > 0 && (
+                    <TouchableOpacity onPress={() => onSearchChange('')} style={styles.clearButton}>
+                        <Icon name="close-circle" size={18} color="gray" />
+                    </TouchableOpacity>
+                )}
             </View>
 
             <View style={styles.rightIcons}>
@@ -63,6 +70,9 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: 'black',
         height: '100%',
+    },
+    clearButton: {
+        marginLeft: 8,
     },
     rightIcons: {
         flexDirection: 'row',
