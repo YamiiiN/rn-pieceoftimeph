@@ -126,10 +126,58 @@ const ProductForm = (props) => {
         }
     };
 
+    const takePicture = async () => {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        
+        if (status !== 'granted') {
+            Alert.alert("Permission Denied", "Camera permission is required to take pictures");
+            return;
+        }
+    
+        let result = await ImagePicker.launchCameraAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1
+        });
+    
+        if (!result.canceled) {
+            const newImage = {
+                uri: result.assets[0].uri,
+                type: mime.getType(result.assets[0].uri),
+                name: result.assets[0].uri.split('/').pop()
+            };
+            
+            setImages([...images, newImage]);
+        }
+    };
+
     const removeImage = (index) => {
         let newImages = [...images];
         newImages.splice(index, 1);
         setImages(newImages);
+    };
+
+    const showImageOptions = () => {
+        Alert.alert(
+            "Add Image",
+            "Choose an option",
+            [
+                {
+                    text: "Take Photo",
+                    onPress: takePicture
+                },
+                {
+                    text: "Choose from Gallery",
+                    onPress: pickImages
+                },
+                {
+                    text: "Cancel",
+                    style: "cancel"
+                }
+            ],
+            { cancelable: true }
+        );
     };
 
     const validateForm = () => {
@@ -211,24 +259,24 @@ const ProductForm = (props) => {
     return (
         <FormContainer title={item ? "Edit Product" : "Add Product"}>
             <View style={styles.imagesContainer}>
-                <FlatList
-                    horizontal
-                    data={images}
-                    renderItem={({ item, index }) => (
-                        <View style={styles.imageContainer}>
-                            <Image source={{ uri: item.uri }} style={styles.image} />
-                            <TouchableOpacity style={styles.deleteBtn} onPress={() => removeImage(index)}>
-                                <Icon name="trash" size={20} color="white" />
-                            </TouchableOpacity>
-                        </View>
-                    )}
-                    keyExtractor={(item, index) => index.toString()}
-                    ListFooterComponent={
-                        <TouchableOpacity style={styles.addImageBtn} onPress={pickImages}>
-                            <Icon name="plus" size={40} color="#000" />
+            <FlatList
+                horizontal
+                data={images}
+                renderItem={({ item, index }) => (
+                    <View style={styles.imageContainer}>
+                        <Image source={{ uri: item.uri }} style={styles.image} />
+                        <TouchableOpacity style={styles.deleteBtn} onPress={() => removeImage(index)}>
+                            <Icon name="trash" size={20} color="white" />
                         </TouchableOpacity>
-                    }
-                />
+                    </View>
+                )}
+                keyExtractor={(item, index) => index.toString()}
+                ListFooterComponent={
+                    <TouchableOpacity style={styles.addImageBtn} onPress={showImageOptions}>
+                        <Icon name="plus" size={40} color="#000" />
+                    </TouchableOpacity>
+                }
+            />
             </View>
 
             {/* Input Fields */}
@@ -337,6 +385,7 @@ const styles = StyleSheet.create({
         width: '100%',
         height: 140,
         marginBottom: 20,
+        alignItems: 'center',
     },
     imageContainer: {
         width: 120,
