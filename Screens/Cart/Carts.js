@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
         minWidth: 25,
     },
     bottomContainer: {
-        padding: 15,
+        padding: 20,
         borderTopWidth: 1,
         borderTopColor: '#eee',
         // backgroundColor: '#f5f5f5'
@@ -252,23 +252,23 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 15,
         paddingHorizontal: 50,
-        borderRadius: 30,
+        borderRadius: 8,
         alignItems: 'center',
     },
     placeOrderText: {
         color: 'white',
         fontWeight: 'bold',
-        fontSize: 14,
+        fontSize: 16,
         marginLeft: 10
     },
     orderTotalText: {
         color: 'white',
         fontWeight: 'bold',
-        fontSize: 14,
+        fontSize: 16,
         marginRight: 10
     },
     disabledButton: {
-        backgroundColor: '#a9a9a9',
+        backgroundColor: '#BDBDBD',
     },
     emptyCartContainer: {
         flex: 1,
