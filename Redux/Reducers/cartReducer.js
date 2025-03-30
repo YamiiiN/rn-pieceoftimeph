@@ -207,7 +207,7 @@ const cartReducer = (state = initialState, action) => {
                 return item;
             });
 
-            console.log("Updated cart items:", updatedCartItems);
+            // console.log("Updated cart items:", updatedCartItems);
             return {
                 ...state,
                 cartItems: updatedCartItems
