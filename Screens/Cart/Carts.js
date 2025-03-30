@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
     View,
     Text,
@@ -11,26 +11,55 @@ import { CheckBox } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
-import { removeFromCart, updateQuantity, toggleSelection } from '../../Redux/Actions/cartActions';
+import { removeFromCart, updateQuantity, toggleSelection, setSelectedItemsForCheckout } from '../../Redux/Actions/cartActions';
 import Toast from 'react-native-toast-message';
 
 const Cart = () => {
     const navigation = useNavigation();
     const dispatch = useDispatch();
-    const cartItems = useSelector(state => state.cart.cartItems);
+    const cartItems = useSelector(state => state.cart.cartItems) || [];
 
-    console.log("Current Cart Items:", cartItems.map(item => ({
-        id: item.id,
-        name: item.name,
-        quantity: item.quantity
-    }))); // pang debug
+    // useEffect(() => {
+    //     console.log("Cart Items with Selection Status:", cartItems.map(item => ({
+    //         id: item.id,
+    //         name: item.name,
+    //         quantity: item.quantity,
+    //         price: item.price,
+    //         selected: item.selected
+    //     })));
+    // }, [cartItems]); // pang debug
 
-    const deliveryFee = 250;
     const subTotal = cartItems
         .filter(item => item.selected)
         .reduce((total, item) => total + (item.price * item.quantity), 0);
 
-    const total = subTotal > 0 ? subTotal + deliveryFee : 0;
+    const handleCheckout = () => {
+        const selectedItems = cartItems
+            .filter(item => item.selected === true)
+            .map(item => ({ 
+                id: item.id,
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity,
+                image: item.image,
+                category: item.category,
+                selected: true
+            }));
+    
+        // console.log("Items being passed to checkout:", selectedItems); // pang confirm
+    
+        if (selectedItems.length > 0) {
+            dispatch(setSelectedItemsForCheckout(selectedItems));
+            navigation.navigate('Checkout');
+        } else {
+            Toast.show({
+                type: 'error',
+                position: 'bottom',
+                text1: 'No items selected',
+                text2: 'Please select at least one item to proceed to checkout.',
+            });
+        }
+    };
 
     const renderCartItem = (item) => (
         <View key={item.id} style={styles.cartItemContainer}>
@@ -71,7 +100,6 @@ const Cart = () => {
             </View>
             <TouchableOpacity onPress={() => dispatch(removeFromCart(item.id))}>
                 <Icon name="trash" size={24} color="red" />
-
             </TouchableOpacity>
         </View>
     );
@@ -102,34 +130,23 @@ const Cart = () => {
                 )}
             </ScrollView>
 
-            <View style={styles.summaryContainer}>
-                <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Sub Total</Text>
-                    <Text style={styles.summaryValue}>₱{subTotal.toLocaleString()}</Text>
-                </View>
-                <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Delivery Fee</Text>
-                    <Text style={styles.summaryValue}>₱{deliveryFee.toLocaleString()}</Text>
-                </View>
-                <View style={styles.totalRow}>
-                    <Text style={styles.totalLabel}>Total</Text>
-                    <Text style={styles.totalValue}>₱{total.toLocaleString()}</Text>
-                </View>
-
+            <View style={styles.bottomContainer}>
                 <TouchableOpacity
                     style={[
-                        styles.checkoutButton,
-                        cartItems.length === 0 || !cartItems.some(item => item.selected) ? styles.disabledButton : {}
+                        styles.placeOrderButton,
+                        cartItems.length === 0 || !cartItems.some(item => item.selected) ? styles.disabledButton : {},
                     ]}
                     disabled={cartItems.length === 0 || !cartItems.some(item => item.selected)}
+                    onPress={handleCheckout}
                 >
-                    <Text style={styles.checkoutButtonText}>Check out</Text>
+                    <Text style={styles.placeOrderText}>CHECKOUT</Text>
+                    <Text style={styles.orderTotalText}>₱{subTotal.toLocaleString()}</Text>
                 </TouchableOpacity>
-
             </View>
         </View>
     );
 };
+
 
 const styles = StyleSheet.create({
     container: {
@@ -222,44 +239,33 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         minWidth: 25,
     },
-    summaryContainer: {
+    bottomContainer: {
         padding: 15,
         borderTopWidth: 1,
-        borderTopColor: '#eee'
+        borderTopColor: '#eee',
+        // backgroundColor: '#f5f5f5'
     },
-    summaryRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 10
-    },
-    summaryLabel: {
-        color: 'gray'
-    },
-    summaryValue: {
-        fontWeight: 'bold'
-    },
-    totalRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 15
-    },
-    totalLabel: {
-        fontWeight: 'bold',
-        fontSize: 16
-    },
-    totalValue: {
-        fontWeight: 'bold',
-        fontSize: 16
-    },
-    checkoutButton: {
+    placeOrderButton: {
         backgroundColor: '#584e51',
-        padding: 15,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 15,
+        paddingHorizontal: 50,
         borderRadius: 30,
-        alignItems: 'center'
+        alignItems: 'center',
     },
-    checkoutButtonText: {
+    placeOrderText: {
         color: 'white',
-        fontWeight: 'bold'
+        fontWeight: 'bold',
+        fontSize: 14,
+        marginLeft: 10
+    },
+    orderTotalText: {
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 14,
+        marginRight: 10
     },
     disabledButton: {
         backgroundColor: '#a9a9a9',
@@ -274,6 +280,18 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: 'gray',
         marginTop: 20
+    },
+    navBar: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        borderTopWidth: 1,
+        borderTopColor: '#eee',
+        paddingVertical: 10
+    },
+    navButton: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        flex: 1
     }
 });
 

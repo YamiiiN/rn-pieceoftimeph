@@ -45,15 +45,17 @@ import { AuthProvider } from './Context/Auth';
 import { Provider } from 'react-redux';
 import store from './Redux/store';
 import Cart from './Screens/Cart/Carts';
+// import Shipping from './Screens/Cart/Checkout/Shipping'; 
 
 import ProductForm from './Screens/Admin/ProductForm';
+// import Checkout from './Screens/Cart/Checkout/Checkout';
 
 const Stack = createStackNavigator();
 
 export default function App() {
   return (
     <AuthProvider>
-      <Provider store={store}>
+      {/* <Provider store={store}>
       <NavigationContainer>
         <Stack.Navigator initialRouteName="ProductForm" screenOptions={{ headerShown: false }}>
           <Stack.Screen name="ProductForm" component={ProductForm} />
@@ -63,14 +65,14 @@ export default function App() {
         </Stack.Navigator>
         <Toast />
       </NavigationContainer>
-      </Provider>
+      </Provider> */}
       
-      {/* <Provider store={store}>
+      <Provider store={store}>
         <NavigationContainer>
           <MainNavigator />
         </NavigationContainer>
         <Toast />
-      </Provider> */}
+      </Provider>
       
     </AuthProvider>
   );

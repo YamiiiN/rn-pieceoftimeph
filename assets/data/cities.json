@@ -1,0 +1,69 @@
+{
+    "Quezon City": [
+        "Barangay Bagumbayan", "Barangay Balingasa", "Barangay Bahay Toro", "Barangay Baño", "Barangay Commonwealth",
+        "Barangay Culiat", "Barangay E. Rodriguez Sr.", "Barangay Fairview", "Barangay Galas", "Barangay Payatas",
+        "Barangay Santo Niño", "Barangay South Triangle", "Barangay Old Balara", "Barangay Project 4", "Barangay San Isidro"
+    ],
+    "Makati": [
+        "Barangay Bel-Air", "Barangay Bangkal", "Barangay Cembo", "Barangay Comembo", "Barangay Guadalupe Nuevo",
+        "Barangay Guadalupe Viejo", "Barangay Kasilawan", "Barangay La Paz", "Barangay Magallanes", "Barangay San Antonio",
+        "Barangay San Isidro", "Barangay Tejeros", "Barangay Urdaneta", "Barangay Pembo"
+    ],
+    "Manila": [
+        "Barangay 1", "Barangay 2", "Barangay 3", "Barangay 4", "Barangay 5", "Barangay 6", "Barangay 7", "Barangay 8",
+        "Barangay 9", "Barangay 10", "Barangay 11", "Barangay 12", "Barangay 13", "Barangay 14", "Barangay 15"
+    ],
+    "Pasig": [
+        "Barangay Bagong Ilog", "Barangay Dela Paz", "Barangay Kapitolyo", "Barangay San Joaquin", "Barangay San Antonio",
+        "Barangay San Miguel", "Barangay Ugong", "Barangay Pinagbuhatan", "Barangay Sto. Niño", "Barangay Santolan"
+    ],
+    "Mandaluyong": [
+        "Barangay Addition Hills", "Barangay Barangka", "Barangay Burol", "Barangay Highway Hills", "Barangay Hulo",
+        "Barangay Mauway", "Barangay Plainview", "Barangay Plainview", "Barangay Wack-Wack"
+    ],
+    "Parañaque": [
+        "Barangay Baclaran", "Barangay Don Bosco", "Barangay La Huerta", "Barangay Merville", "Barangay Moonwalk",
+        "Barangay San Antonio", "Barangay San Isidro", "Barangay San Martin de Porres", "Barangay San Juan", "Barangay Sto. Niño"
+    ],
+    "Pasay": [
+        "Barangay 1", "Barangay 2", "Barangay 3", "Barangay 4", "Barangay 5", "Barangay 6", "Barangay 7", "Barangay 8",
+        "Barangay 9", "Barangay 10", "Barangay 11", "Barangay 12", "Barangay 13", "Barangay 14"
+    ],
+    "Las Piñas": [
+        "Barangay Alabang", "Barangay CAA", "Barangay Concepcion", "Barangay Daniel Fajardo", "Barangay Manuyo",
+        "Barangay Pamplona", "Barangay Pilar", "Barangay Talon", "Barangay Zapote", "Barangay Quirino"
+    ],
+    "Caloocan": [
+        "Barangay Bagumbong", "Barangay Bagumbayan", "Barangay Balintawak", "Barangay Caloocan", "Barangay Concepcion",
+        "Barangay 165", "Barangay 166", "Barangay 167", "Barangay 168", "Barangay 169"
+    ],
+    "Valenzuela": [
+        "Barangay Balangkas", "Barangay Bankal", "Barangay Barangay Karuhatan", "Barangay Maysan", "Barangay Malanday",
+        "Barangay Pasolo", "Barangay Poblacion", "Barangay Punturin", "Barangay Ugong", "Barangay Wawang Pulo"
+    ],
+    "Navotas": [
+        "Barangay Bangkulasi", "Barangay Daanghari", "Barangay Longos", "Barangay North Bay Boulevard North", "Barangay North Bay Boulevard South",
+        "Barangay San Jose", "Barangay San Rafael", "Barangay Tanza"
+    ],
+    "Malabon": [
+        "Barangay Acacia", "Barangay Cupang", "Barangay Dulong Bayan", "Barangay F. Santiago", "Barangay Longos",
+        "Barangay San Agustin", "Barangay San Isidro", "Barangay San Juan", "Barangay San Miguel", "Barangay Santol"
+    ],
+    "Muntinlupa": [
+        "Barangay Alabang", "Barangay Bayanan", "Barangay Cupang", "Barangay Poblacion", "Barangay Putatan", 
+        "Barangay Sucat", "Barangay Tunasan", "Barangay Alabang Creek"
+    ],
+    "Marikina": [
+        "Barangay Concepcion I", "Barangay Concepcion II", "Barangay Dela Paz", "Barangay Fortune", "Barangay Jesus Dela Peña",
+        "Barangay Malanday", "Barangay Marikina Heights", "Barangay Nangka", "Barangay San Isidro", "Barangay San Juan"
+    ],
+    "San Juan": [
+        "Barangay Addition Hills", "Barangay Batis", "Barangay Corazon de Jesus", "Barangay Kabayanan", "Barangay Little Baguio",
+        "Barangay Salapan", "Barangay San Perfecto"
+    ],
+    "Taguig": [
+        "Barangay Bagumbayan", "Barangay Central Bicutan", "Barangay New Lower Bicutan", "Barangay North Daang Hari",
+        "Barangay South Daang Hari", "Barangay Upper Bicutan", "Barangay Fort Bonifacio", "Barangay Western Bicutan",
+        "Barangay Ususan", "Barangay Maharlika Village"
+    ]
+}
