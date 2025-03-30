@@ -163,6 +163,7 @@ const MainNavigator = () => {
         name="User"
         component={UserNavigator}
         options={{
+          headerShown: false,
           tabBarIcon: ({ color }) => <Icon name="person-sharp" color={color} size={30} />
         }}
       />

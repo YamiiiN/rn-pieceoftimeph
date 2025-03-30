@@ -1,14 +1,45 @@
 import React from 'react'
 import { View, Text } from 'react-native';
+import { createStackNavigator } from "@react-navigation/stack"
+const Stack = createStackNavigator();
+import Profile from "../Screens/User/Profile";
+import Login from "../Screens/User/Login";
+import Register from "../Screens/User/Register";
 
-
-const UserNavigator = () => {
+function UserNavigator() {
   return (
-    <>
-      <View>
-        <Text>Open up App.js to start working on your app!</Text>
-      </View>
-    </>
+    <Stack.Navigator>
+      <Stack.Screen
+        name="Profile"
+        component={Profile}
+        options={{
+          headerShown: false
+        }}
+      />
+      <Stack.Screen
+        name="Login"
+        component={Login}
+        options={{
+          headerShown: false
+        }}
+      />
+
+      <Stack.Screen
+        name="Register"
+        component={Register}
+        options={{
+          headerShown: false
+        }}
+      />
+
+      {/* <Stack.Screen
+                name="My Orders"
+                component={MyOrders}
+                options={{
+                    headerShown: false
+                }}
+            /> */}
+    </Stack.Navigator>
   )
 
 }
