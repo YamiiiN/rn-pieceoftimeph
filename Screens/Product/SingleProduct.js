@@ -63,6 +63,7 @@ const SingleProduct = () => {
             //     quantity
             // });
 
+            // Also dispatch to Redux for state management
             dispatch(addToCart(cartItem));
 
             // console.log("Adding to Cart with User ID:", userId);
