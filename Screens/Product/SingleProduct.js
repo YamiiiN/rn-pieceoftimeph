@@ -32,7 +32,6 @@ const SingleProduct = () => {
 
     const handleAddToCart = async () => {
         try {
-            // Check for user ID in different ways
             const userId = user?._id || user?.id || decodedUser?.id;
 
             if (!userId) {
@@ -64,7 +63,6 @@ const SingleProduct = () => {
             //     quantity
             // });
 
-            // Also dispatch to Redux for state management
             dispatch(addToCart(cartItem));
 
             // console.log("Adding to Cart with User ID:", userId);

@@ -68,7 +68,9 @@ const Cart = () => {
                 price: item.price || item.product_price || 0,
                 image: item.image || item.product_image || 'https://via.placeholder.com/150',
                 quantity: item.quantity || 1,
-                selected: item.selected === 1,
+                // selected: item.selected === 1,
+                selected: Boolean(item.selected),
+
             }));
 
             setCartItems(formattedItems);
@@ -169,7 +171,6 @@ const Cart = () => {
         }
     };
 
-    // FIXED Cart.js handleCheckout function
     const handleCheckout = async () => {
         try {
             const userId = getUserId(user);
@@ -183,8 +184,6 @@ const Cart = () => {
                 });
                 return;
             }
-
-            // Pass userId correctly to the function
             const selectedItems = await getSelectedCartItems(userId);
             console.log("Selected items for checkout from SQLite:", selectedItems);
 

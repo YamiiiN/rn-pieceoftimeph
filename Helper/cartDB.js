@@ -261,7 +261,6 @@ export const clearCart = async (userId) => {
     try {
         const db = await getDatabase();
         
-        // Using runAsync instead of execAsync for consistency
         const result = await db.runAsync(
             `DELETE FROM cart WHERE user_id = ?`, 
             [userId]
@@ -274,57 +273,3 @@ export const clearCart = async (userId) => {
         throw error;
     }
 };
-
-// export const toggleCartItemSelection = async (userId, productId, selected) => {
-//     try {
-//         const selectedValue = selected ? 1 : 0;
-//         const db = await getDatabase();
-//         const result = await db.execAsync(
-//             `UPDATE cart SET selected = ? WHERE user_id = ? AND product_id = ?`,
-//             [selectedValue, userId, productId]
-//         );
-//         console.log('Toggled selection in SQLite cart:', { userId, productId, selected: selectedValue });
-//         return result;
-//     } catch (error) {
-//         console.error('Error toggling cart item selection:', error);
-//         throw error;
-//     }
-// };
-
-// export const getSelectedCartItems = async (userId) => {
-//     try {
-//         const db = await getDatabase();
-//         const result = await db.getAllAsync(
-//             `SELECT * FROM cart WHERE user_id = ? AND selected = 1`,
-//             [userId]
-//         );
-
-//         const items = result.map(item => ({
-//             id: item.product_id,
-//             name: item.product_name,
-//             category: item.product_category,
-//             price: item.product_price,
-//             image: item.product_image,
-//             quantity: item.quantity,
-//             selected: true
-//         }));
-
-//         console.log('Fetched selected cart items from SQLite:', items);
-//         return items;
-//     } catch (error) {
-//         console.error('Error fetching selected cart items:', error);
-//         throw error;
-//     }
-// };
-
-// export const clearCart = async (userId) => {
-//     try {
-//         const db = await getDatabase();
-//         const result = await db.execAsync(`DELETE FROM cart WHERE user_id = ?`, [userId]);
-//         console.log('Cleared SQLite cart for user:', userId);
-//         return result;
-//     } catch (error) {
-//         console.error('Error clearing cart:', error);
-//         throw error;
-//     }
-// };
