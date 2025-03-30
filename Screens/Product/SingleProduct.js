@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -11,8 +11,10 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
-import { addToCart } from '../../Redux/Actions/cartActions'; 
+import { addToCart } from '../../Redux/Actions/cartActions';
 import Toast from 'react-native-toast-message';
+import { addToCartDB } from '../../Helper/cartDB';
+import { useAuth } from '../../Context/Auth';
 
 const { width } = Dimensions.get('window');
 
@@ -20,37 +22,71 @@ const SingleProduct = () => {
     const route = useRoute();
     const navigation = useNavigation();
     const dispatch = useDispatch();
-    
+    const { user } = useAuth();
     const { item } = route.params;
     const [selectedImage, setSelectedImage] = useState(item.images[0]?.url);
     const [quantity, setQuantity] = useState(1);
     const [showFullDescription, setShowFullDescription] = useState(false);
-
     const incrementQuantity = () => setQuantity(quantity + 1);
     const decrementQuantity = () => quantity > 1 && setQuantity(quantity - 1);
 
-    const handleAddToCart = () => {
-        const cartItem = {
-            id: item._id,
-            name: item.name,
-            image: item.images[0]?.url,
-            price: item.sell_price,
-            quantity,
-            category: item.category || "Uncategorized"
-        };
+    const handleAddToCart = async () => {
+        try {
+            // Check for user ID in different ways
+            const userId = user?._id || user?.id || decodedUser?.id;
 
-        // console.log("Dispatching addToCart:", cartItem); // pang debug
-        dispatch(addToCart(cartItem));
+            if (!userId) {
+                console.error("No user ID found despite token existing", { user, decodedUser });
+                Toast.show({
+                    type: 'error',
+                    text1: 'Login Error',
+                    text2: 'User session found but ID is missing. Please login again.',
+                    position: 'top',
+                });
+                return;
+            }
 
-        Toast.show({
-            type: 'success',
-            text1: 'Added to Cart',
-            text2: `${item.name} has been added successfully!`,
-            position: 'top',
-        });
+            const cartItem = {
+                id: item._id,
+                name: item.name,
+                image: item.images[0]?.url,
+                price: item.sell_price,
+                quantity,
+                category: item.category || "Uncategorized"
+            };
+
+            // Add to SQLite DB with the found user ID
+            await addToCartDB(userId, cartItem, quantity);
+            // console.log("Item added to SQLite cart:", {
+            //     userId,
+            //     productId: item._id,
+            //     name: item.name,
+            //     quantity
+            // });
+
+            // Also dispatch to Redux for state management
+            dispatch(addToCart(cartItem));
+
+            // console.log("Adding to Cart with User ID:", userId);
+            // console.log("Cart Item:", cartItem);
+
+
+            Toast.show({
+                type: 'success',
+                text1: 'Added to Cart',
+                text2: `${item.name} has been added successfully!`,
+                position: 'top',
+            });
+        } catch (error) {
+            console.error("Error adding to cart:", error);
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Failed to add item to cart',
+                position: 'top',
+            });
+        }
     };
-    
-
     return (
         <View style={styles.container}>
             <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -116,13 +152,14 @@ const SingleProduct = () => {
     );
 };
 
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: 'white',
     },
     scrollContainer: {
-        paddingBottom: 100, 
+        paddingBottom: 100,
     },
     backButton: {
         position: 'absolute',

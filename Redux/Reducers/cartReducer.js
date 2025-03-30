@@ -104,28 +104,7 @@ const initialState = {
 };
 const cartReducer = (state = initialState, action) => {
     switch (action.type) {
-        // case ADD_TO_CART:
-        //     const existingItemIndex = state.cartItems.findIndex(item => item.id === action.payload.id);
-
-        //     if (existingItemIndex !== -1) {
-        //         const updatedCartItems = [...state.cartItems];
-        //         updatedCartItems[existingItemIndex] = {
-        //             ...updatedCartItems[existingItemIndex],
-        //             quantity: updatedCartItems[existingItemIndex].quantity + action.payload.quantity,
-        //         };
-
-        //         return {
-        //             ...state,
-        //             cartItems: updatedCartItems,
-        //             cartCount: state.cartCount + action.payload.quantity,
-        //         };
-        //     } else {
-        //         return {
-        //             ...state,
-        //             cartItems: [...state.cartItems, { ...action.payload, quantity: action.payload.quantity, selected: true }],
-        //             cartCount: state.cartCount + action.payload.quantity,
-        //         };
-        //     }
+        
         case ADD_TO_CART:
             const existingItemIndex = state.cartItems.findIndex(item => item.id === action.payload.id);
 
@@ -177,27 +156,7 @@ const cartReducer = (state = initialState, action) => {
                 ),
             };
 
-        // case TOGGLE_SELECTION:
-        //     // Make sure we're dealing with deep copies to avoid mutation issues
-        //     const updatedCartItems = state.cartItems.map(item => {
-        //         if (item.id === action.payload) {
-        //             // Log the selection change for debugging
-        //             console.log(`Toggling selection for item ${item.id} from ${item.selected} to ${!item.selected}`);
-        //             return { ...item, selected: item.selected === true ? false : true };
-        //         }
-        //         return item;
-        //     });
-
-        //     // Log the updated cart items for debugging
-        //     console.log("Updated cart items after toggle:", updatedCartItems.map(item => ({
-        //         id: item.id,
-        //         selected: item.selected
-        //     })));
-
-        //     return {
-        //         ...state,
-        //         cartItems: updatedCartItems
-        //     };
+       
         case TOGGLE_SELECTION:
             const updatedCartItems = state.cartItems.map(item => {
                 if (item.id === action.payload) {

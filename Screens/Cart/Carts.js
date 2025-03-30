@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -10,62 +10,210 @@ import {
 import { CheckBox } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector, useDispatch } from 'react-redux';
-import { removeFromCart, updateQuantity, toggleSelection, setSelectedItemsForCheckout } from '../../Redux/Actions/cartActions';
+import { useDispatch } from 'react-redux';
+import { setSelectedItemsForCheckout } from '../../Redux/Actions/cartActions';
 import Toast from 'react-native-toast-message';
+import { useAuth } from '../../Context/Auth';
+import {
+    getCartItems,
+    removeCartItem,
+    updateCartItemQuantity,
+    toggleCartItemSelection,
+    getSelectedCartItems,
+} from '../../Helper/cartDB';
 
 const Cart = () => {
     const navigation = useNavigation();
     const dispatch = useDispatch();
-    const cartItems = useSelector(state => state.cart.cartItems) || [];
+    const { user } = useAuth();
+    const [cartItems, setCartItems] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    // useEffect(() => {
-    //     console.log("Cart Items with Selection Status:", cartItems.map(item => ({
-    //         id: item.id,
-    //         name: item.name,
-    //         quantity: item.quantity,
-    //         price: item.price,
-    //         selected: item.selected
-    //     })));
-    // }, [cartItems]); // pang debug
+    useEffect(() => {
+        loadCartItems();
+    }, [user]);
+
+    const getUserId = (user) => {
+        return user?.id || user?._id || user?.decodedUser?.id;
+    };
 
     const subTotal = cartItems
         .filter(item => item.selected)
-        .reduce((total, item) => total + (item.price * item.quantity), 0);
+        .reduce((total, item) => total + ((item.price || 0) * (item.quantity || 0)), 0);
 
-    const handleCheckout = () => {
-        const selectedItems = cartItems
-            .filter(item => item.selected === true)
-            .map(item => ({ 
+
+    const loadCartItems = async () => {
+        try {
+
+            const userId = getUserId(user);
+            if (!userId) {
+                console.log('No user ID found, cannot fetch cart');
+                setCartItems([]);
+                setLoading(false);
+                Toast.show({
+                    type: 'error',
+                    text1: 'Login Error',
+                    text2: 'User session found but ID is missing. Please login again.',
+                    position: 'top',
+                });
+                return;
+            }
+
+            const items = await getCartItems(userId);
+            // console.log('Cart items retrieved from SQLite:', items);
+            const formattedItems = items.map(item => ({
                 id: item.id,
-                name: item.name,
-                price: item.price,
-                quantity: item.quantity,
-                image: item.image,
-                category: item.category,
-                selected: true
+                name: item.name || item.product_name || 'Unknown Name',
+                category: item.category || item.product_category || 'Unknown Category',
+                price: item.price || item.product_price || 0,
+                image: item.image || item.product_image || 'https://via.placeholder.com/150',
+                quantity: item.quantity || 1,
+                selected: item.selected === 1,
             }));
-    
-        // console.log("Items being passed to checkout:", selectedItems); // pang confirm
-    
-        if (selectedItems.length > 0) {
-            dispatch(setSelectedItemsForCheckout(selectedItems));
-            navigation.navigate('Checkout');
-        } else {
+
+            setCartItems(formattedItems);
+            setLoading(false);
+        } catch (error) {
+            console.error('Error loading cart items:', error);
+            setLoading(false);
             Toast.show({
                 type: 'error',
-                position: 'bottom',
-                text1: 'No items selected',
-                text2: 'Please select at least one item to proceed to checkout.',
+                text1: 'Error',
+                text2: 'Failed to load cart items',
+                position: 'top',
+            });
+        }
+    };
+    const handleUpdateQuantity = async (productId, newQuantity) => {
+        try {
+            // console.log('Current user:', user);
+
+            const userId = getUserId(user);
+            if (!userId) {
+                console.error('User ID is missing');
+                return;
+            }
+
+            if (newQuantity > 0) {
+                const updateSuccess = await updateCartItemQuantity(userId, productId, newQuantity);
+                await loadCartItems();
+
+            }
+        } catch (error) {
+            console.error('Error updating quantity:', error);
+        }
+    };
+
+    const handleRemoveItem = async (productId) => {
+        try {
+            console.log('Removing item from cart:', productId);
+
+            const userId = getUserId(user);
+            if (!userId) {
+                console.error('User ID is missing');
+                return;
+            }
+
+            const removeSuccess = await removeCartItem(userId, productId);
+
+            if (removeSuccess) {
+                console.log('Item removed, refreshing cart...');
+                await loadCartItems();
+            } else {
+                console.warn('Failed to remove item from the cart.');
+            }
+        } catch (error) {
+            console.error('Error removing item from cart:', error);
+        }
+    };
+
+    const handleToggleSelection = async (productId) => {
+        try {
+            const userId = getUserId(user);
+            if (!userId) {
+                console.error('User ID is missing');
+                Toast.show({
+                    type: 'error',
+                    text1: 'Login Error',
+                    text2: 'Please login again to continue.',
+                    position: 'top',
+                });
+                return;
+            }
+
+            const item = cartItems.find(item => item.id === productId);
+            if (item) {
+                const newSelected = !item.selected;
+
+                // Pass userId correctly to the function
+                const toggleSuccess = await toggleCartItemSelection(userId, productId, newSelected);
+
+                if (toggleSuccess) {
+                    // Update local state after successful DB update
+                    setCartItems(cartItems.map(item =>
+                        item.id === productId ? { ...item, selected: newSelected } : item
+                    ));
+                    // console.log('Item selection toggled:', { productId, selected: newSelected });
+                } else {
+                    console.warn('Failed to toggle item selection in database');
+                }
+            }
+        } catch (error) {
+            console.error('Error toggling item selection:', error);
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Failed to update item selection',
+                position: 'top',
             });
         }
     };
 
+    // FIXED Cart.js handleCheckout function
+    const handleCheckout = async () => {
+        try {
+            const userId = getUserId(user);
+            if (!userId) {
+                console.error('User ID is missing');
+                Toast.show({
+                    type: 'error',
+                    text1: 'Login Error',
+                    text2: 'Please login again to continue.',
+                    position: 'top',
+                });
+                return;
+            }
+
+            // Pass userId correctly to the function
+            const selectedItems = await getSelectedCartItems(userId);
+            console.log("Selected items for checkout from SQLite:", selectedItems);
+
+            if (selectedItems.length > 0) {
+                dispatch(setSelectedItemsForCheckout(selectedItems));
+                navigation.navigate('Checkout');
+            } else {
+                Toast.show({
+                    type: 'error',
+                    position: 'bottom',
+                    text1: 'No items selected',
+                    text2: 'Please select at least one item to proceed to checkout.',
+                });
+            }
+        } catch (error) {
+            console.error('Error preparing checkout:', error);
+            Toast.show({
+                type: 'error',
+                position: 'bottom',
+                text1: 'Error',
+                text2: 'Failed to prepare checkout',
+            });
+        }
+    };
     const renderCartItem = (item) => (
         <View key={item.id} style={styles.cartItemContainer}>
             <CheckBox
                 checked={item.selected}
-                onPress={() => dispatch(toggleSelection(item.id))}
+                onPress={() => handleToggleSelection(item.id)}
                 containerStyle={styles.checkboxContainer}
                 checkedColor="black"
             />
@@ -74,7 +222,11 @@ const Cart = () => {
                 <View style={styles.itemDetails}>
                     <Text style={styles.itemName}>{item.name}</Text>
                     <Text style={styles.itemCategory}>{item.category} Watch</Text>
-                    <Text style={styles.itemPrice}>₱{item.price.toLocaleString()}</Text>
+                    {/* <Text style={styles.itemPrice}>₱{item.price.toLocaleString()}</Text> */}
+                    <Text style={styles.itemPrice}>
+                        ₱{item.price ? item.price.toLocaleString() : '0'}
+                    </Text>
+
                 </View>
                 <View style={styles.quantityContainerWrapper}>
                     <View style={styles.quantityContainer}>
@@ -82,7 +234,7 @@ const Cart = () => {
                             style={styles.circleButtonMinus}
                             onPress={() => {
                                 if (item.quantity > 1) {
-                                    dispatch(updateQuantity(item.id, item.quantity - 1));
+                                    handleUpdateQuantity(item.id, item.quantity - 1);
                                 }
                             }}
                         >
@@ -91,14 +243,14 @@ const Cart = () => {
                         <Text style={styles.quantityText}>{item.quantity}</Text>
                         <TouchableOpacity
                             style={styles.circleButtonAdd}
-                            onPress={() => dispatch(updateQuantity(item.id, item.quantity + 1))}
+                            onPress={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                         >
                             <Icon name="add" size={20} color="white" />
                         </TouchableOpacity>
                     </View>
                 </View>
             </View>
-            <TouchableOpacity onPress={() => dispatch(removeFromCart(item.id))}>
+            <TouchableOpacity onPress={() => handleRemoveItem(item.id)}>
                 <Icon name="trash" size={24} color="red" />
             </TouchableOpacity>
         </View>
@@ -117,12 +269,12 @@ const Cart = () => {
             </View>
 
             <ScrollView style={styles.scrollView}>
-                {cartItems.length > 0 ? (
-                    cartItems.map((item, index) => (
-                        <View key={item.id || index}>
-                            {renderCartItem(item)}
-                        </View>
-                    ))
+                {loading ? (
+                    <View style={styles.emptyCartContainer}>
+                        <Text style={styles.emptyCartText}>Loading cart items...</Text>
+                    </View>
+                ) : cartItems.length > 0 ? (
+                    cartItems.map((item) => renderCartItem(item))
                 ) : (
                     <View style={styles.emptyCartContainer}>
                         <Text style={styles.emptyCartText}>Your cart is empty.</Text>
@@ -140,9 +292,13 @@ const Cart = () => {
                     onPress={handleCheckout}
                 >
                     <Text style={styles.placeOrderText}>CHECKOUT</Text>
-                    <Text style={styles.orderTotalText}>₱{subTotal.toLocaleString()}</Text>
+                    <Text style={styles.orderTotalText}>₱{(subTotal || 0).toLocaleString()}</Text>
+
+                    {/* <Text style={styles.orderTotalText}>₱{subTotal.toLocaleString()}</Text> */}
                 </TouchableOpacity>
             </View>
+
+            <Toast />
         </View>
     );
 };
