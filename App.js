@@ -1,37 +1,3 @@
-// import { StatusBar } from 'expo-status-bar';
-// import { StyleSheet, Text, View } from 'react-native';
-// import { NavigationContainer } from '@react-navigation/native';
-
-
-// import Login from './Screens/User/Login'
-// import Register from './Screens/User/Register'
-// import MainNavigator from './Navigators/MainNavigator';
-
-// const Stack = createStackNavigator();
-
-// export default function App() {
-//   return (
-
-//     <NavigationContainer>
-//       {/* <MainNavigator />  */}
-//       <Login />
-//       {/* <Register /> */}
-//     </NavigationContainer>  
-
-
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: '#fff',
-//     alignItems: 'center',
-//     justifyContent: 'center',
-//   },
-// });
-
-
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
@@ -44,11 +10,8 @@ import MainNavigator from './Navigators/MainNavigator';
 import { AuthProvider } from './Context/Auth';
 import { Provider } from 'react-redux';
 import store from './Redux/store';
-import Cart from './Screens/Cart/Carts';
-// import Shipping from './Screens/Cart/Checkout/Shipping'; 
 
 import ProductForm from './Screens/Admin/ProductForm';
-// import Checkout from './Screens/Cart/Checkout/Checkout';
 
 const Stack = createStackNavigator();
 
@@ -57,7 +20,7 @@ export default function App() {
     <AuthProvider>
       {/* <Provider store={store}>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="ProductForm" screenOptions={{ headerShown: false }}>
+        <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
           <Stack.Screen name="ProductForm" component={ProductForm} />
           <Stack.Screen name="Login" component={Login} />
           <Stack.Screen name="Register" component={Register} />

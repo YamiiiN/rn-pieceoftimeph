@@ -262,7 +262,7 @@ const Profile = () => {
                             <MaterialIcons name="person" size={30} color="black" />
                         )}
 
-                        {/* Only show camera button when editing */}
+
                         {isEditing && (
                             <TouchableOpacity style={styles.cameraButton} onPress={takePhoto}>
                                 <View style={styles.cameraIconContainer}>
@@ -275,7 +275,6 @@ const Profile = () => {
                         <Text style={styles.profileName}>{userData.fullName}</Text>
                         <Text style={styles.profileEmail}>{userData.email}</Text>
 
-                        {/* Only show change photo button when editing */}
                         {isEditing && (
                             <TouchableOpacity style={styles.galleryButton} onPress={pickImage}>
                                 <Text style={styles.galleryButtonText}>Change Photo</Text>
