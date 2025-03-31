@@ -1,11 +1,65 @@
-import React from 'react';
-import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { 
+  View, 
+  TextInput, 
+  StyleSheet, 
+  TouchableOpacity, 
+  Animated, 
+  TouchableWithoutFeedback, 
+  Dimensions,
+  Text
+} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 const Header = ({ searchQuery, onSearchChange }) => {
+    const [drawerVisible, setDrawerVisible] = useState(false);
+    const slideAnim = useRef(new Animated.Value(-280)).current;
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    
+    const toggleDrawer = () => {
+        if (drawerVisible) {
+            closeDrawer();
+        } else {
+            openDrawer();
+        }
+    };
+    
+    const openDrawer = () => {
+        setDrawerVisible(true);
+        Animated.parallel([
+            Animated.timing(slideAnim, {
+                toValue: 0,
+                duration: 300,
+                useNativeDriver: true,
+            }),
+            Animated.timing(fadeAnim, {
+                toValue: 0.5,
+                duration: 300,
+                useNativeDriver: true,
+            })
+        ]).start();
+    };
+    
+    const closeDrawer = () => {
+        Animated.parallel([
+            Animated.timing(slideAnim, {
+                toValue: -280,
+                duration: 300,
+                useNativeDriver: true,
+            }),
+            Animated.timing(fadeAnim, {
+                toValue: 0,
+                duration: 300,
+                useNativeDriver: true,
+            })
+        ]).start(() => {
+            setDrawerVisible(false);
+        });
+    };
+    
     return (
         <View style={styles.container}>
-            <TouchableOpacity style={styles.menuButton}>
+            <TouchableOpacity style={styles.menuButton} onPress={toggleDrawer}>
                 <Icon name="menu-outline" size={24} color="black" />
             </TouchableOpacity>
 
@@ -33,9 +87,59 @@ const Header = ({ searchQuery, onSearchChange }) => {
                     <Icon name="notifications-outline" size={22} color="black" />
                 </TouchableOpacity>
             </View>
+            
+
+            {drawerVisible && (
+                <TouchableWithoutFeedback onPress={closeDrawer}>
+                    <Animated.View style={[styles.overlay, { opacity: fadeAnim }]} />
+                </TouchableWithoutFeedback>
+            )}
+            
+            {/* Drawer */}
+            <Animated.View 
+                style={[
+                    styles.drawer, 
+                    {
+                        transform: [{ translateX: slideAnim }],
+                    }
+                ]}
+            >
+                <View style={styles.drawerHeader}>
+                    <Text style={styles.drawerTitle}>Menu</Text>
+                    <TouchableOpacity onPress={closeDrawer}>
+                        <Icon name="close-outline" size={24} color="#333" />
+                    </TouchableOpacity>
+                </View>
+                
+                <View style={styles.drawerContent}>
+                    <TouchableOpacity style={styles.drawerItem}>
+                        <Icon name="person-outline" size={22} color="#555" />
+                        <Text style={styles.drawerItemText}>My Profile</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity style={styles.drawerItem}>
+                        <Icon name="heart-outline" size={22} color="#555" />
+                        <Text style={styles.drawerItemText}>Favourites</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity style={styles.drawerItem}>
+                        <Icon name="receipt-outline" size={22} color="#555" />
+                        <Text style={styles.drawerItemText}>Orders</Text>
+                    </TouchableOpacity>
+                    
+                    <View style={styles.divider} />
+                    
+                    <TouchableOpacity style={styles.drawerItem}>
+                        <Icon name="log-out-outline" size={22} color="#e74c3c" />
+                        <Text style={[styles.drawerItemText, styles.logoutText]}>Logout</Text>
+                    </TouchableOpacity>
+                </View>
+            </Animated.View>
         </View>
     );
 };
+
+const { width, height } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
     container: {
@@ -49,6 +153,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.1,
         shadowRadius: 1,
+        zIndex: 10,
     },
     menuButton: {
         marginRight: 12,
@@ -80,6 +185,67 @@ const styles = StyleSheet.create({
     },
     iconButton: {
         marginLeft: 16,
+    },
+    overlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'black',
+        zIndex: 100,
+    },
+    drawer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: 280,
+        height: height,
+        backgroundColor: 'white',
+        zIndex: 1000,
+        shadowColor: '#000',
+        shadowOffset: { width: 2, height: 0 },
+        shadowOpacity: 0.2,
+        shadowRadius: 5,
+        elevation: 5,
+    },
+    drawerHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f0f0f0',
+    },
+    drawerTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    drawerContent: {
+        flex: 1,
+        paddingTop: 10,
+    },
+    drawerItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 14,
+        paddingHorizontal: 20,
+    },
+    drawerItemText: {
+        fontSize: 16,
+        color: '#333',
+        marginLeft: 16,
+    },
+    divider: {
+        height: 1,
+        backgroundColor: '#f0f0f0',
+        marginVertical: 10,
+        marginHorizontal: 20,
+    },
+    logoutText: {
+        color: '#e74c3c',
     },
 });
 
