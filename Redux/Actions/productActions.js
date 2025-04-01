@@ -69,15 +69,18 @@ export const createProduct = (productData, token) => async (dispatch) => {
 export const updateProduct = (id, productData, token) => async (dispatch) => {
     try {
         dispatch({ type: PRODUCT_UPDATE_REQUEST });
+        // console.log("Update product API call for ID:", id);
 
         const config = {
             headers: {
                 'Content-Type': 'multipart/form-data',
                 'Authorization': `Bearer ${token}`
-            }
+            },
+            timeout: 30000
         };
 
         const { data } = await axios.put(`${baseURL}/product/update/${id}`, productData, config);
+        // console.log("API response:", data);
 
         dispatch({
             type: PRODUCT_UPDATE_SUCCESS,
@@ -87,10 +90,13 @@ export const updateProduct = (id, productData, token) => async (dispatch) => {
         // fetch updated product list
         dispatch(listProducts());
     } catch (error) {
+        // console.error("Update product API error:", error);
+        // console.error("Response data:", error.response?.data);
         dispatch({
             type: PRODUCT_UPDATE_FAIL,
             payload: error.response?.data?.message || error.message
         });
+        throw error;
     }
 };
 

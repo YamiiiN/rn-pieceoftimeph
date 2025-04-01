@@ -14,6 +14,7 @@ import store from './Redux/store';
 
 
 import ProductForm from './Screens/Admin/ProductForm';
+import Products from './Screens/Admin/Products';
 
 import { initDatabase } from './Helper/cartDB';
 
@@ -33,8 +34,9 @@ export default function App() {
     <AuthProvider>
       {/* <Provider store={store}>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
+        <Stack.Navigator initialRouteName="Products" screenOptions={{ headerShown: false }}>
           <Stack.Screen name="ProductForm" component={ProductForm} />
+          <Stack.Screen name="Products" component={Products} />
           <Stack.Screen name="Login" component={Login} />
           <Stack.Screen name="Register" component={Register} />
           <Stack.Screen name="MainNavigator" component={MainNavigator} options={{ headerShown: false }} />

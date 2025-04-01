@@ -105,7 +105,7 @@ const ProductForm = (props) => {
         return () => {
             setCategories([]);
         }
-    }, []);
+    }, [props.route.params]);
 
     const pickImages = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
@@ -213,48 +213,68 @@ const ProductForm = (props) => {
         productData.append("cost_price", costPrice);
         productData.append("stock_quantity", stockQuantity);
         
-        images.forEach((image, index) => {
-            if (image.uri) {
+        let imagesToUpload = [];
+        let existingImages = [];
+        
+        images.forEach((image) => {
+            if (image.public_id) {
+                // existing image
+                existingImages.push({
+                    public_id: image.public_id,
+                    url: image.uri
+                });
+            } else {
+                // new image to upload
                 const newImageUri = "file:///" + image.uri.split("file:/").join("");
-                productData.append("images", {
+                imagesToUpload.push({
                     uri: newImageUri,
                     type: mime.getType(newImageUri) || 'image/jpeg',
                     name: newImageUri.split("/").pop()
                 });
             }
         });
-    
-        try {
-            if (item !== null) {
-                await dispatch(updateProduct(item._id, productData, token));
-                Toast.show({
-                    topOffset: 60,
-                    type: "success",
-                    text1: "Product successfully updated",
-                    text2: ""
-                });
-            } else {
-                await dispatch(createProduct(productData, token));
-                Toast.show({
-                    topOffset: 60,
-                    type: "success",
-                    text1: "New product added",
-                    text2: ""
-                });
-            }
-            navigation.navigate("Products");
-        } catch (error) {
-            console.log(error);
-            Toast.show({
-                topOffset: 60,
-                type: "error",
-                text1: "Failed to process product",
-                text2: "Please try again"
-            });
-        } finally {
-            setLoading(false);
+        if (existingImages.length > 0) {
+            productData.append("existingImages", JSON.stringify(existingImages));
         }
-    };   
+        
+        // add new images individually
+        imagesToUpload.forEach((img, index) => {
+            productData.append("images", img);
+        });
+
+            try {
+                if (item !== null) {
+                    await dispatch(updateProduct(item._id, productData, token));
+                    Toast.show({
+                        topOffset: 60,
+                        type: "success",
+                        text1: "Product successfully updated",
+                        text2: ""
+                    });
+                } else {
+                    await dispatch(createProduct(productData, token));
+                    Toast.show({
+                        topOffset: 60,
+                        type: "success",
+                        text1: "New product added",
+                        text2: ""
+                    });
+                }
+                setTimeout(() => {
+                    navigation.navigate("Products");
+                }, 2000); // Short delay to show toast
+            } catch (error) {
+                console.log(error);
+                Toast.show({
+                    topOffset: 60,
+                    type: "error",
+                    text1: "Failed to process product",
+                    text2: "Please try again"
+                });
+            } finally {
+                setLoading(false);
+            }
+        };   
 
     return (
         <FormContainer title={item ? "Edit Product" : "Add Product"}>

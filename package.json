@@ -38,6 +38,7 @@
     "react-native-gesture-handler": "~2.20.2",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-mime-types": "^2.5.0",
+    "react-native-pager-view": "^6.7.0",
     "react-native-paper": "^5.13.1",
     "react-native-paper-dropdown": "^2.3.1",
     "react-native-range-slider-expo": "^1.4.3",
