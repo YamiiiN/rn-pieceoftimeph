@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -10,37 +10,150 @@ import {
     Platform,
     ScrollView,
     StatusBar,
-    Image
+    Image,
+    ActivityIndicator,
+    Alert
 } from 'react-native';
 import { MaterialIcons, Feather, MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { useAuth } from '../../Context/Auth';
+import axios from 'axios';
+import baseURL from '../../assets/common/baseUrl';
 
 const Profile = () => {
     const [isEditing, setIsEditing] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [image, setImage] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [userData, setUserData] = useState({
-        firstName: 'Kristine Mae',
-        lastName: 'Verona',
-        fullName: 'Kristine Mae Verona',
-        email: 'kristinemae@gmail.com',
-        password: '••••••••••••••••••••',
-        confirmPassword: '••••••••••••••••••••'
+        firstName: '',
+        lastName: '',
+        fullName: '',
+        email: '',
     });
+
+    const { token, user } = useAuth();
+
+    useEffect(() => {
+        fetchUserProfile();
+    }, []);
+
+    const fetchUserProfile = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(`${baseURL}/user/profile`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`, // Implement getToken function to retrieve JWT
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.user) {
+                setUserData({
+                    firstName: data.user.first_name,
+                    lastName: data.user.last_name,
+                    fullName: `${data.user.first_name} ${data.user.last_name}`,
+                    email: data.user.email,
+                });
+
+                // Set profile image if available
+                if (data.user.images && data.user.images.length > 0) {
+                    setImage(data.user.images[0].url);
+                }
+            } else {
+                setError(data.message || 'Failed to load profile');
+            }
+        } catch (err) {
+            setError('Network error. Please try again later.');
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const toggleEditing = () => {
         setIsEditing(!isEditing);
     };
 
-    const saveProfile = () => {
-        // Update fullName when saving
-        setUserData({
-            ...userData,
-            fullName: `${userData.firstName} ${userData.lastName}`
-        });
-        setIsEditing(false);
+    const saveProfile = async () => {
+        try {
+            setLoading(true);
+
+            console.log('Data ready to send:', {
+                first_name: userData.firstName,
+                last_name: userData.lastName,
+                email: userData.email,
+                images: image,  // Debugging
+            });
+
+            const formData = new FormData();
+            formData.append('first_name', userData.firstName);
+            formData.append('last_name', userData.lastName);
+            formData.append('email', userData.email);
+
+            if (Array.isArray(image) && image.length > 0) {
+                image.forEach((img, index) => {
+                    if (img.uri && img.uri.startsWith('file://')) {
+                        const fileName = img.uri.split('/').pop();
+                        const fileType = fileName.split('.').pop();
+
+                        formData.append(`images`, {
+                            uri: img.uri,
+                            name: fileName,
+                            type: `image/${fileType}`,
+                        });
+                    }
+                });
+            } else if (image?.uri && image.uri.startsWith('file://')) {
+                // If it's a single image, convert it into an array before sending
+                const fileName = image.uri.split('/').pop();
+                const fileType = fileName.split('.').pop();
+
+                formData.append('images', {
+                    uri: image.uri,
+                    name: fileName,
+                    type: `image/${fileType}`,
+                });
+            }
+
+            console.log('FormData before sending:', formData);
+
+            const response = await axios.put(`${baseURL}/user/profile/update`, formData, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            console.log('Server response:', response.data);
+
+            // Ensure images array is updated correctly
+            setUserData({
+                ...userData,
+                firstName: response.data.user.first_name,
+                lastName: response.data.user.last_name,
+                email: response.data.user.email,
+                images: response.data.user.images || userData.images, // ✅ Ensure updated images are reflected
+            });
+
+            Alert.alert('Success', 'Profile updated successfully.');
+
+            setTimeout(fetchUserProfile, 2000);
+
+        } catch (err) {
+            console.error('Profile update error:', err.response?.data || err.message);
+            setError('Network error. Please try again later.');
+            Alert.alert('Error', err.response?.data?.message || 'Network error. Please try again later.');
+        } finally {
+            setLoading(false);
+            setIsEditing(false);
+        }
     };
+
 
     const pickImage = async () => {
         if (!isEditing) return;
@@ -73,6 +186,17 @@ const Profile = () => {
             }
         }
     };
+
+    if (loading && !isEditing) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#757575" />
+                    <Text style={styles.loadingText}>Loading profile...</Text>
+                </View>
+            </SafeAreaView>
+        );
+    }
 
     const renderEditForm = () => (
         <ScrollView style={styles.formContainer} showsVerticalScrollIndicator={false}>
@@ -125,45 +249,7 @@ const Profile = () => {
                 </View>
             </View>
 
-            <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>PASSWORD</Text>
-                <View style={styles.inputRow}>
-                    <View style={styles.iconContainer}>
-                        <Feather name="lock" size={20} color="#555" />
-                    </View>
-                    <TextInput
-                        style={styles.input}
-                        value={userData.password}
-                        onChangeText={(text) => setUserData({ ...userData, password: text })}
-                        secureTextEntry={!showPassword}
-                        placeholder="Enter your password"
-                        placeholderTextColor="#999"
-                    />
-                    <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
-                        <Feather name={showPassword ? "eye" : "eye-off"} size={20} color="#555" />
-                    </TouchableOpacity>
-                </View>
-            </View>
 
-            <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>CONFIRM PASSWORD</Text>
-                <View style={styles.inputRow}>
-                    <View style={styles.iconContainer}>
-                        <Feather name="lock" size={20} color="#555" />
-                    </View>
-                    <TextInput
-                        style={styles.input}
-                        value={userData.confirmPassword}
-                        onChangeText={(text) => setUserData({ ...userData, confirmPassword: text })}
-                        secureTextEntry={!showConfirmPassword}
-                        placeholder="Confirm your password"
-                        placeholderTextColor="#999"
-                    />
-                    <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)} style={styles.eyeIcon}>
-                        <Feather name={showConfirmPassword ? "eye" : "eye-off"} size={20} color="#555" />
-                    </TouchableOpacity>
-                </View>
-            </View>
 
             <View style={styles.spacer} />
         </ScrollView>
@@ -203,25 +289,6 @@ const Profile = () => {
                 </View>
             </View>
 
-            <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>PASSWORD</Text>
-                <View style={styles.inputRow}>
-                    <View style={styles.iconContainer}>
-                        <Feather name="lock" size={20} color="#555" />
-                    </View>
-                    <TextInput
-                        style={styles.input}
-                        value={userData.password}
-                        secureTextEntry={!showPassword}
-                        editable={false}
-                        placeholder="Your password"
-                        placeholderTextColor="#999"
-                    />
-                    <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
-                        <Feather name={showPassword ? "eye" : "eye-off"} size={20} color="#555" />
-                    </TouchableOpacity>
-                </View>
-            </View>
 
             <View style={styles.spacer} />
         </ScrollView>
@@ -289,7 +356,7 @@ const Profile = () => {
             </KeyboardAvoidingView>
         </SafeAreaView>
     );
-};  
+};
 
 const styles = StyleSheet.create({
     container: {
