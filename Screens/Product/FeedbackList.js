@@ -1,8 +1,12 @@
+// frontend/Screens/Product/FeedbackList
 import React from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useSelector } from 'react-redux';
 
-const FeedbackList = ({ feedbacks }) => {
+const FeedbackList = () => {
+  const { reviews, loading } = useSelector(state => state.reviews);
+
   // Function to render stars based on rating
   const renderStars = (rating) => {
     const stars = [];
@@ -26,12 +30,36 @@ const FeedbackList = ({ feedbacks }) => {
     return new Date(dateString).toLocaleDateString('en-US', options);
   };
 
+  // Get user name - handle different user object formats
+  const getUserName = (user) => {
+    if (!user) return 'Anonymous';
+    
+    if (user.first_name && user.last_name) {
+      return `${user.first_name} ${user.last_name}`;
+    } else if (user.name) {
+      return user.name;
+    } else if (user.email) {
+      // Return email but hide part of it for privacy
+      const emailParts = user.email.split('@');
+      if (emailParts.length === 2) {
+        const username = emailParts[0];
+        const domain = emailParts[1];
+        if (username.length > 2) {
+          return `${username.substring(0, 2)}***@${domain}`;
+        }
+      }
+      return user.email;
+    }
+    
+    return 'User';
+  };
+
   const renderFeedbackItem = ({ item }) => (
     <View style={styles.feedbackItem}>
       <View style={styles.feedbackHeader}>
         <View style={styles.userInfo}>
-          <Text style={styles.userName}>{item.userName}</Text>
-          <Text style={styles.feedbackDate}>{formatDate(item.date)}</Text>
+          <Text style={styles.userName}>{getUserName(item.user)}</Text>
+          <Text style={styles.feedbackDate}>{formatDate(item.createdAt || item.date)}</Text>
         </View>
         <View style={styles.ratingContainer}>
           {renderStars(item.rating)}
@@ -41,30 +69,42 @@ const FeedbackList = ({ feedbacks }) => {
     </View>
   );
 
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Customer Reviews</Text>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="small" color="#0000ff" />
+          <Text style={styles.loadingText}>Loading reviews...</Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Customer Reviews</Text>
       <View style={styles.overallRating}>
         <Text style={styles.ratingNumber}>
-          {feedbacks.length > 0
-            ? (feedbacks.reduce((sum, item) => sum + item.rating, 0) / feedbacks.length).toFixed(1)
+          {reviews.length > 0
+            ? (reviews.reduce((sum, item) => sum + item.rating, 0) / reviews.length).toFixed(1)
             : "0.0"}
         </Text>
         <View style={styles.ratingStars}>
           {renderStars(
-            feedbacks.length > 0
-              ? Math.round(feedbacks.reduce((sum, item) => sum + item.rating, 0) / feedbacks.length)
+            reviews.length > 0
+              ? Math.round(reviews.reduce((sum, item) => sum + item.rating, 0) / reviews.length)
               : 0
           )}
         </View>
-        <Text style={styles.totalReviews}>({feedbacks.length} reviews)</Text>
+        <Text style={styles.totalReviews}>({reviews.length} reviews)</Text>
       </View>
       
-      {feedbacks.length > 0 ? (
+      {reviews.length > 0 ? (
         <FlatList
-          data={feedbacks}
+          data={reviews}
           renderItem={renderFeedbackItem}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item._id ? item._id.toString() : item.id.toString()}
           scrollEnabled={false}
         />
       ) : (
@@ -75,6 +115,7 @@ const FeedbackList = ({ feedbacks }) => {
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
