@@ -1,24 +1,51 @@
-import React, { useState } from 'react';
+// frontend/Screens/Product/FeedbackForm
+import React, { useState, useEffect } from 'react';
 import { 
     View, 
     Text, 
-    StyleSheet, 
-    TextInput, 
+    TextInput,
+    StyleSheet,
     TouchableOpacity, 
-    TouchableWithoutFeedback 
+    TouchableWithoutFeedback,
+    ActivityIndicator
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
 import { useAuth } from '../../Context/Auth';
+import { useDispatch, useSelector } from 'react-redux';
+import { 
+    createReview, 
+    updateReview,
+} from '../../Redux/Actions/reviewActions';
 
-const FeedbackForm = ({ productId, onFeedbackSubmitted }) => {
-    const { user } = useAuth();
+const FeedbackForm = ({ productId, existingReview, onSubmitSuccess }) => {
+    const { user, token } = useAuth();
     const [rating, setRating] = useState(0);
     const [comment, setComment] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [reviewId, setReviewId] = useState(null);
+    
+    const dispatch = useDispatch();
+    const { loading, error } = useSelector(state => state.reviews);
+
+    // Set up form with existing review data if available
+    useEffect(() => {
+        if (existingReview) {
+            setRating(existingReview.rating);
+            setComment(existingReview.comment);
+            setReviewId(existingReview._id);
+            setIsEditing(true);
+        } else {
+            // Reset form when no existing review
+            setRating(0);
+            setComment('');
+            setReviewId(null);
+            setIsEditing(false);
+        }
+    }, [existingReview]);
 
     const handleSubmit = async () => {
-        if (!user) {
+        if (!user || !token) {
             Toast.show({
                 type: 'error',
                 text1: 'Login Required',
@@ -48,63 +75,51 @@ const FeedbackForm = ({ productId, onFeedbackSubmitted }) => {
             return;
         }
 
-        setIsSubmitting(true);
+        const reviewData = {
+            rating,
+            comment
+        };
 
         try {
-            // Here you would add API call to submit feedback
-            // const response = await fetch('your-api-url/feedback', {
-            //     method: 'POST',
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //     },
-            //     body: JSON.stringify({
-            //         productId,
-            //         userId: user._id,
-            //         rating,
-            //         comment,
-            //         date: new Date()
-            //     }),
-            // });
-            
-            // Mock successful submission for now
-            setTimeout(() => {
-                // Create a mock feedback object that would normally come from your API
-                const newFeedback = {
-                    id: Math.floor(Math.random() * 10000),
-                    productId,
-                    userId: user._id || user.id,
-                    userName: user.name || 'User',
-                    rating,
-                    comment,
-                    date: new Date().toISOString()
-                };
-                
-                if (onFeedbackSubmitted) {
-                    onFeedbackSubmitted(newFeedback);
-                }
-
-                // Reset form
-                setRating(0);
-                setComment('');
-                
+            if (isEditing && reviewId) {
+                // Update existing review
+                await dispatch(updateReview(productId, reviewId, reviewData, token));
+                Toast.show({
+                    type: 'success',
+                    text1: 'Review Updated',
+                    text2: 'Your review has been updated successfully',
+                    position: 'top',
+                });
+            } else {
+                // Create new review
+                await dispatch(createReview(productId, reviewData, token));
                 Toast.show({
                     type: 'success',
                     text1: 'Thank You!',
                     text2: 'Your review has been submitted successfully',
                     position: 'top',
                 });
-                
-                setIsSubmitting(false);
-            }, 1000);
-        } catch (error) {
-            console.error("Error submitting feedback:", error);
+            }
+            
+            // Notify parent component that submission was successful
+            if (onSubmitSuccess) {
+                onSubmitSuccess();
+            }
+            
+        } catch (err) {
+            console.error("Error handling review:", err);
             Toast.show({
                 type: 'error',
                 text1: 'Error',
-                text2: 'Failed to submit your review',
+                text2: error || 'Failed to submit your review',
                 position: 'top',
             });
-            setIsSubmitting(false);
+        }
+    };
+
+    const handleCancel = () => {
+        if (onSubmitSuccess) {
+            onSubmitSuccess();
         }
     };
 
@@ -125,15 +140,40 @@ const FeedbackForm = ({ productId, onFeedbackSubmitted }) => {
         return stars;
     };
 
+    // If loading
+    if (loading) {
+        return (
+            <View style={styles.container}>
+                <Text style={styles.title}>{isEditing ? 'Updating Review' : 'Submitting Review'}</Text>
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="small" color="#0000ff" />
+                    <Text style={styles.loadingText}>Processing...</Text>
+                </View>
+            </View>
+        );
+    }
+
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Write a Review</Text>
+            <View style={styles.headerContainer}>
+                <Text style={styles.title}>{isEditing ? 'Edit Your Review' : 'Write a Review'}</Text>
+                {isEditing && (
+                    <TouchableOpacity 
+                        style={styles.cancelButton}
+                        onPress={handleCancel}
+                    >
+                        <Icon name="close-outline" size={24} color="#666" />
+                    </TouchableOpacity>
+                )}
+            </View>
+            
             <View style={styles.ratingContainer}>
                 <Text style={styles.ratingLabel}>Your Rating:</Text>
                 <View style={styles.starSelector}>
                     {renderStarSelector()}
                 </View>
             </View>
+            
             <View style={styles.commentContainer}>
                 <TextInput
                     style={styles.commentInput}
@@ -144,13 +184,14 @@ const FeedbackForm = ({ productId, onFeedbackSubmitted }) => {
                     onChangeText={setComment}
                 />
             </View>
+            
             <TouchableOpacity 
-                style={[styles.submitButton, isSubmitting && styles.disabledButton]} 
+                style={[styles.submitButton, loading && styles.disabledButton]} 
                 onPress={handleSubmit}
-                disabled={isSubmitting}
+                disabled={loading}
             >
                 <Text style={styles.submitButtonText}>
-                    {isSubmitting ? 'Submitting...' : 'Submit Review'}
+                    {loading ? 'Submitting...' : (isEditing ? 'Update Review' : 'Submit Review')}
                 </Text>
             </TouchableOpacity>
         </View>
@@ -159,56 +200,76 @@ const FeedbackForm = ({ productId, onFeedbackSubmitted }) => {
 
 const styles = StyleSheet.create({
     container: {
-        padding: 16,
-        backgroundColor: 'white',
-        marginTop: 8,
+        backgroundColor: '#f8f8f8',
+        borderRadius: 10,
+        padding: 15,
+        marginHorizontal: 15,
+        marginTop: 10,
+        marginBottom: 20,
+    },
+    headerContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 12,
     },
     title: {
         fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 16,
+        fontWeight: '600',
+        color: '#333',
+        flex: 1,
     },
     ratingContainer: {
-        marginBottom: 16,
+        marginBottom: 15,
     },
     ratingLabel: {
-        fontSize: 14,
+        fontSize: 16,
+        color: '#555',
         marginBottom: 8,
-        color: '#666',
     },
     starSelector: {
         flexDirection: 'row',
-        justifyContent: 'center',
-        paddingVertical: 10,
+        alignItems: 'center',
     },
     starIcon: {
-        marginHorizontal: 5,
+        marginRight: 5,
     },
     commentContainer: {
-        marginBottom: 16,
+        marginBottom: 20,
     },
     commentInput: {
         borderWidth: 1,
-        borderColor: '#e0e0e0',
+        borderColor: '#ddd',
         borderRadius: 8,
         padding: 12,
-        textAlignVertical: 'top',
         minHeight: 100,
-        fontSize: 14,
+        backgroundColor: '#fff',
+        textAlignVertical: 'top',
+        fontSize: 16,
     },
     submitButton: {
         backgroundColor: '#584e51',
         paddingVertical: 15,
         borderRadius: 30,
+        paddingHorizontal: 20,
         alignItems: 'center',
-    },
-    disabledButton: {
-        backgroundColor: '#a8a8a8',
+        justifyContent: 'center',
+        flex: 1,
     },
     submitButtonText: {
-        color: 'white',
+        color: '#fff',
+        fontWeight: '600',
         fontSize: 16,
-        fontWeight: 'bold',
+    },
+    loadingContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 20,
+    },
+    loadingText: {
+        color: '#666',
+        marginTop: 10,
+        fontSize: 16,
     },
 });
 

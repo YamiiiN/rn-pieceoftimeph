@@ -307,20 +307,26 @@
 
 // export default SingleProduct;
 
+// SingleProduct.js
 import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
-    StyleSheet,
     Image,
     TouchableOpacity,
+    StyleSheet,
     ScrollView,
     Dimensions
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '../../Redux/Actions/cartActions';
+import { 
+    listReviewsByProduct, 
+    checkUserReview, 
+    checkCanReview 
+} from '../../Redux/Actions/reviewActions';
 import Toast from 'react-native-toast-message';
 import { addToCartDB } from '../../Helper/cartDB';
 import { useAuth } from '../../Context/Auth';
@@ -333,63 +339,65 @@ const SingleProduct = () => {
     const route = useRoute();
     const navigation = useNavigation();
     const dispatch = useDispatch();
-    const { user } = useAuth();
+    const { user, token } = useAuth();
     const { item } = route.params;
     const [selectedImage, setSelectedImage] = useState(item.images[0]?.url);
     const [quantity, setQuantity] = useState(1);
     const [showFullDescription, setShowFullDescription] = useState(false);
-    const [feedbacks, setFeedbacks] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [editingReview, setEditingReview] = useState(null);
+    const [showReviewForm, setShowReviewForm] = useState(false);
+    
+    // Get review state from Redux
+    const { 
+        reviews, 
+        userReview, 
+        canReview, 
+        loading: reviewsLoading 
+    } = useSelector(state => state.reviews);
     
     const incrementQuantity = () => setQuantity(quantity + 1);
     const decrementQuantity = () => quantity > 1 && setQuantity(quantity - 1);
 
+    // Fetch reviews and check user review status when component mounts
     useEffect(() => {
-        // Here you would fetch real feedback data from your API
-        // For now, let's use mock data
-        const mockFeedbacks = [
-            {
-                id: 1,
-                productId: item._id,
-                userId: 'user123',
-                userName: 'John Doe',
-                rating: 5,
-                comment: 'This product exceeded my expectations! The quality is excellent and it arrived sooner than expected.',
-                date: '2024-03-15T12:00:00Z'
-            },
-            {
-                id: 2,
-                productId: item._id,
-                userId: 'user456',
-                userName: 'Jane Smith',
-                rating: 4,
-                comment: 'Great value for money. The product works well, though the packaging could be improved.',
-                date: '2024-03-10T09:30:00Z'
-            },
-            {
-                id: 3,
-                productId: item._id,
-                userId: 'user789',
-                userName: 'Robert Johnson',
-                rating: 3,
-                comment: 'Decent product but it took longer than expected to arrive. Would be nice if shipping was faster.',
-                date: '2024-03-05T15:45:00Z'
-            }
-        ];
-        
-        // Simulate API loading delay
-        setTimeout(() => {
-            setFeedbacks(mockFeedbacks);
-            setIsLoading(false);
-        }, 1000);
-    }, [item._id]);
+        dispatch(listReviewsByProduct(item._id));
+
+        if (user && token) {
+            dispatch(checkUserReview(item._id, token))
+                .then(review => {
+                    if (review) {
+                        // User has already reviewed, don't show form
+                        setShowReviewForm(false);
+                    } else {
+                        // User hasn't reviewed yet, check if they can
+                        dispatch(checkCanReview(item._id, token))
+                            .then(canReviewResult => {
+                                // Only show form if user can review
+                                setShowReviewForm(canReviewResult);
+                            });
+                    }
+                });
+        }
+    }, [dispatch, item._id, user, token]);
+
+    const handleEditReview = (review) => {
+        setEditingReview(review);
+        setShowReviewForm(true);
+    };
+
+    const handleReviewSubmitted = () => {
+        setShowReviewForm(false);
+        setEditingReview(null);
+        // Refresh reviews
+        dispatch(listReviewsByProduct(item._id));
+    };
 
     const handleAddToCart = async () => {
         try {
-            const userId = user?._id || user?.id || decodedUser?.id;
+            const userId = user?._id || user?.id;
 
             if (!userId) {
-                console.error("No user ID found despite token existing", { user, decodedUser });
+                console.error("No user ID found despite token existing", { user });
                 Toast.show({
                     type: 'error',
                     text1: 'Login Error',
@@ -429,11 +437,6 @@ const SingleProduct = () => {
                 position: 'top',
             });
         }
-    };
-
-    const handleFeedbackSubmitted = (newFeedback) => {
-        // Add new feedback to the list
-        setFeedbacks([newFeedback, ...feedbacks]);
     };
 
     return (
@@ -484,19 +487,49 @@ const SingleProduct = () => {
                 <View style={styles.separator} />
 
                 {/* Feedback List */}
-                {isLoading ? (
+                {reviewsLoading ? (
                     <View style={styles.loadingContainer}>
                         <Text style={styles.loadingText}>Loading reviews...</Text>
                     </View>
                 ) : (
-                    <FeedbackList feedbacks={feedbacks} />
+                    <FeedbackList 
+                        onEditReview={handleEditReview}
+                    />
                 )}
 
-                {/* Feedback Form */}
-                <FeedbackForm 
-                    productId={item._id} 
-                    onFeedbackSubmitted={handleFeedbackSubmitted}
-                />
+                {/* Feedback Form - Only show if user can review or is editing */}
+                {(user && showReviewForm) && (
+                    <FeedbackForm 
+                        productId={item._id}
+                        existingReview={editingReview || userReview}
+                        token={token}
+                        onSubmitSuccess={handleReviewSubmitted}
+                    />
+                )}
+                
+                {/* Message if user cannot review */}
+                {(user && !canReview && !userReview) && (
+                    <View style={styles.cannotReviewContainer}>
+                        <Text style={styles.cannotReviewText}>
+                            You can only review products after receiving your order.
+                        </Text>
+                    </View>
+                )}
+                
+                {/* Message if user is not logged in */}
+                {!user && (
+                    <View style={styles.loginPromptContainer}>
+                        <Text style={styles.loginPromptText}>
+                            Please log in to leave a review.
+                        </Text>
+                        <TouchableOpacity 
+                            style={styles.loginButton}
+                            onPress={() => navigation.navigate('Login')}
+                        >
+                            <Text style={styles.loginButtonText}>Login</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
                 
                 {/* Extra space at bottom */}
                 <View style={styles.bottomSpace} />
@@ -688,6 +721,23 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 16,
         fontWeight: 'bold',
+    },
+    addReviewButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#4CAF50',
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderRadius: 8,
+        marginHorizontal: 20,
+        marginVertical: 15,
+    },
+    addReviewText: {
+        color: '#FFFFFF',
+        fontWeight: '600',
+        fontSize: 16,
+        marginLeft: 8,
     },
 });
 

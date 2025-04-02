@@ -1,8 +1,17 @@
+// frontend/Screens/Product/FeedbackList
 import React from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useSelector, useDispatch } from 'react-redux';
+import { SwipeListView } from 'react-native-swipe-list-view';
+import { useAuth, token } from '../../Context/Auth';
+import { deleteReview } from '../../Redux/Actions/reviewActions';
 
-const FeedbackList = ({ feedbacks }) => {
+const FeedbackList = ({ onEditReview }) => {
+  const { reviews, loading } = useSelector(state => state.reviews);
+  const { user, token } = useAuth();
+  const dispatch = useDispatch();
+
   // Function to render stars based on rating
   const renderStars = (rating) => {
     const stars = [];
@@ -26,12 +35,42 @@ const FeedbackList = ({ feedbacks }) => {
     return new Date(dateString).toLocaleDateString('en-US', options);
   };
 
+  // Get user name - handle different user object formats
+  const getUserName = (user) => {
+    if (!user) return 'Anonymous';
+    
+    if (user.first_name && user.last_name) {
+      return `${user.first_name} ${user.last_name}`;
+    } else if (user.name) {
+      return user.name;
+    } else if (user.email) {
+      // Return email but hide part of it for privacy
+      const emailParts = user.email.split('@');
+      if (emailParts.length === 2) {
+        const username = emailParts[0];
+        const domain = emailParts[1];
+        if (username.length > 2) {
+          return `${username.substring(0, 2)}***@${domain}`;
+        }
+      }
+      return user.email;
+    }
+    
+    return 'User';
+  };
+
+  // Check if review belongs to current user
+  const isUserReview = (reviewUserId) => {
+    const currentUserId = user?._id || user?.id;
+    return currentUserId && currentUserId === reviewUserId;
+  };
+
   const renderFeedbackItem = ({ item }) => (
     <View style={styles.feedbackItem}>
       <View style={styles.feedbackHeader}>
         <View style={styles.userInfo}>
-          <Text style={styles.userName}>{item.userName}</Text>
-          <Text style={styles.feedbackDate}>{formatDate(item.date)}</Text>
+          <Text style={styles.userName}>{getUserName(item.user)}</Text>
+          <Text style={styles.feedbackDate}>{formatDate(item.createdAt || item.date)}</Text>
         </View>
         <View style={styles.ratingContainer}>
           {renderStars(item.rating)}
@@ -41,30 +80,98 @@ const FeedbackList = ({ feedbacks }) => {
     </View>
   );
 
+  // Render hidden row with action buttons
+  const renderHiddenItem = ({ item }) => {
+    // Only show edit/delete options for user's own reviews
+    if (!isUserReview(item.user?._id || item.user)) {
+      return <View style={styles.hiddenItemContainer} />;
+    }
+
+    return (
+      <View style={styles.hiddenItemContainer}>
+        <TouchableOpacity 
+          style={[styles.hiddenButton, styles.editButton]}
+          onPress={() => onEditReview(item)}
+        >
+          <Icon name="create-outline" size={24} color="#fff" />
+          <Text style={styles.hiddenButtonText}>Edit</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={[styles.hiddenButton, styles.deleteButton]}
+          onPress={() => {
+            if (user && token) {
+              // Confirm before deleting
+              Alert.alert(
+                "Delete Review",
+                "Are you sure you want to delete this review?",
+                [
+                  {
+                    text: "Cancel",
+                    style: "cancel"
+                  },
+                  { 
+                    text: "Delete", 
+                    onPress: () => {
+                      const reviewId = item._id;
+                      const productId = item.product?._id || item.product;
+                      
+                      dispatch(deleteReview(productId, reviewId, token));
+                    },
+                    style: "destructive"
+                  }
+                ]
+              );
+            }
+          }}
+        >
+          <Icon name="trash-outline" size={24} color="#fff" />
+          <Text style={styles.hiddenButtonText}>Delete</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Customer Reviews</Text>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="small" color="#0000ff" />
+          <Text style={styles.loadingText}>Loading reviews...</Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Customer Reviews</Text>
       <View style={styles.overallRating}>
         <Text style={styles.ratingNumber}>
-          {feedbacks.length > 0
-            ? (feedbacks.reduce((sum, item) => sum + item.rating, 0) / feedbacks.length).toFixed(1)
+          {reviews.length > 0
+            ? (reviews.reduce((sum, item) => sum + item.rating, 0) / reviews.length).toFixed(1)
             : "0.0"}
         </Text>
         <View style={styles.ratingStars}>
           {renderStars(
-            feedbacks.length > 0
-              ? Math.round(feedbacks.reduce((sum, item) => sum + item.rating, 0) / feedbacks.length)
+            reviews.length > 0
+              ? Math.round(reviews.reduce((sum, item) => sum + item.rating, 0) / reviews.length)
               : 0
           )}
         </View>
-        <Text style={styles.totalReviews}>({feedbacks.length} reviews)</Text>
+        <Text style={styles.totalReviews}>({reviews.length} reviews)</Text>
       </View>
       
-      {feedbacks.length > 0 ? (
-        <FlatList
-          data={feedbacks}
+      {reviews.length > 0 ? (
+        <SwipeListView
+          data={reviews}
           renderItem={renderFeedbackItem}
-          keyExtractor={(item) => item.id.toString()}
+          renderHiddenItem={renderHiddenItem}
+          keyExtractor={(item) => item._id ? item._id.toString() : item.id.toString()}
+          leftOpenValue={0}
+          rightOpenValue={-155}
+          disableRightSwipe={true}
           scrollEnabled={false}
         />
       ) : (
@@ -108,6 +215,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   feedbackItem: {
+    backgroundColor: 'white',
     padding: 12,
     marginBottom: 12,
     borderRadius: 8,
@@ -152,7 +260,32 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     textAlign: 'center',
-  }
+  },
+  hiddenItemContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    height: '90%',
+    paddingRight: 5
+  },
+  hiddenButton: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 75,
+    height: '95%',
+  },
+  editButton: {
+    backgroundColor: '#4CAF50',
+  },
+  deleteButton: {
+    backgroundColor: '#F44336',
+  },
+  hiddenButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: 2,
+  },
 });
 
 export default FeedbackList;
