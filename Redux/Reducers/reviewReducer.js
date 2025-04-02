@@ -14,7 +14,10 @@ import {
     CHECK_USER_REVIEW_FAIL,
     CHECK_CAN_REVIEW_REQUEST,
     CHECK_CAN_REVIEW_SUCCESS,
-    CHECK_CAN_REVIEW_FAIL
+    CHECK_CAN_REVIEW_FAIL,
+    REVIEW_DELETE_REQUEST,
+    REVIEW_DELETE_SUCCESS,
+    REVIEW_DELETE_FAIL
 } from '../Actions/reviewActions';
 
 const initialState = {
@@ -124,7 +127,27 @@ export default function reviewReducer(state = initialState, action) {
                 loading: false, 
                 error: action.payload 
             };
-            
+        case REVIEW_DELETE_REQUEST:
+            return { 
+                ...state, 
+                loading: true 
+            };
+        case REVIEW_DELETE_SUCCESS:
+            return { 
+                ...state, 
+                loading: false, 
+                success: true,
+                // Remove the deleted review from the reviews array
+                reviews: state.reviews.filter(review => review._id !== action.payload),
+                // Clear userReview if it was the one deleted
+                userReview: state.userReview && state.userReview._id === action.payload ? null : state.userReview
+            };
+        case REVIEW_DELETE_FAIL:
+            return { 
+                ...state, 
+                loading: false, 
+                error: action.payload 
+            };
         default:
             return state;
     }

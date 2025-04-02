@@ -181,33 +181,33 @@ export const checkCanReview = (productId, token) => async (dispatch) => {
     }
 };
 
-// export const deleteReview = (productId, reviewId, token) => async (dispatch) => {
-//     try {
-//         dispatch({ type: REVIEW_DELETE_REQUEST });
+export const deleteReview = (productId, reviewId, token) => async (dispatch) => {
+    try {
+        dispatch({ type: REVIEW_DELETE_REQUEST });
 
-//         const config = {
-//             headers: {
-//                 'Authorization': `Bearer ${token}`
-//             }
-//         };
+        const config = {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        };
 
-//         await axios.delete(
-//             `${baseURL}/review/delete/${productId}/${reviewId}`, 
-//             config
-//         );
+        await axios.delete(
+            `${baseURL}/review/delete/${productId}/${reviewId}`, 
+            config
+        );
 
-//         dispatch({
-//             type: REVIEW_DELETE_SUCCESS,
-//             payload: reviewId
-//         });
+        dispatch({
+            type: REVIEW_DELETE_SUCCESS,
+            payload: reviewId
+        });
 
-//         // Refresh the reviews list for the product
-//         dispatch(listReviewsByProduct(productId));
+        // Refresh the reviews list for the product
+        dispatch(listReviewsByProduct(productId));
 
-//     } catch (error) {
-//         dispatch({
-//             type: REVIEW_DELETE_FAIL,
-//             payload: error.response?.data?.message || error.message
-//         });
-//     }
-// };
+    } catch (error) {
+        dispatch({
+            type: REVIEW_DELETE_FAIL,
+            payload: error.response?.data?.message || error.message
+        });
+    }
+};

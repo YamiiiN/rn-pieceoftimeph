@@ -1,11 +1,16 @@
 // frontend/Screens/Product/FeedbackList
 import React from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { SwipeListView } from 'react-native-swipe-list-view';
+import { useAuth, token } from '../../Context/Auth';
+import { deleteReview } from '../../Redux/Actions/reviewActions';
 
-const FeedbackList = () => {
+const FeedbackList = ({ onEditReview }) => {
   const { reviews, loading } = useSelector(state => state.reviews);
+  const { user, token } = useAuth();
+  const dispatch = useDispatch();
 
   // Function to render stars based on rating
   const renderStars = (rating) => {
@@ -54,6 +59,12 @@ const FeedbackList = () => {
     return 'User';
   };
 
+  // Check if review belongs to current user
+  const isUserReview = (reviewUserId) => {
+    const currentUserId = user?._id || user?.id;
+    return currentUserId && currentUserId === reviewUserId;
+  };
+
   const renderFeedbackItem = ({ item }) => (
     <View style={styles.feedbackItem}>
       <View style={styles.feedbackHeader}>
@@ -68,6 +79,58 @@ const FeedbackList = () => {
       <Text style={styles.comment}>{item.comment}</Text>
     </View>
   );
+
+  // Render hidden row with action buttons
+  const renderHiddenItem = ({ item }) => {
+    // Only show edit/delete options for user's own reviews
+    if (!isUserReview(item.user?._id || item.user)) {
+      return <View style={styles.hiddenItemContainer} />;
+    }
+
+    return (
+      <View style={styles.hiddenItemContainer}>
+        <TouchableOpacity 
+          style={[styles.hiddenButton, styles.editButton]}
+          onPress={() => onEditReview(item)}
+        >
+          <Icon name="create-outline" size={24} color="#fff" />
+          <Text style={styles.hiddenButtonText}>Edit</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={[styles.hiddenButton, styles.deleteButton]}
+          onPress={() => {
+            if (user && token) {
+              // Confirm before deleting
+              Alert.alert(
+                "Delete Review",
+                "Are you sure you want to delete this review?",
+                [
+                  {
+                    text: "Cancel",
+                    style: "cancel"
+                  },
+                  { 
+                    text: "Delete", 
+                    onPress: () => {
+                      const reviewId = item._id;
+                      const productId = item.product?._id || item.product;
+                      
+                      dispatch(deleteReview(productId, reviewId, token));
+                    },
+                    style: "destructive"
+                  }
+                ]
+              );
+            }
+          }}
+        >
+          <Icon name="trash-outline" size={24} color="#fff" />
+          <Text style={styles.hiddenButtonText}>Delete</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   if (loading) {
     return (
@@ -101,10 +164,14 @@ const FeedbackList = () => {
       </View>
       
       {reviews.length > 0 ? (
-        <FlatList
+        <SwipeListView
           data={reviews}
           renderItem={renderFeedbackItem}
+          renderHiddenItem={renderHiddenItem}
           keyExtractor={(item) => item._id ? item._id.toString() : item.id.toString()}
+          leftOpenValue={0}
+          rightOpenValue={-155}
+          disableRightSwipe={true}
           scrollEnabled={false}
         />
       ) : (
@@ -115,7 +182,6 @@ const FeedbackList = () => {
     </View>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
@@ -149,6 +215,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   feedbackItem: {
+    backgroundColor: 'white',
     padding: 12,
     marginBottom: 12,
     borderRadius: 8,
@@ -193,7 +260,32 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     textAlign: 'center',
-  }
+  },
+  hiddenItemContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    height: '90%',
+    paddingRight: 5
+  },
+  hiddenButton: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 75,
+    height: '95%',
+  },
+  editButton: {
+    backgroundColor: '#4CAF50',
+  },
+  deleteButton: {
+    backgroundColor: '#F44336',
+  },
+  hiddenButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: 2,
+  },
 });
 
 export default FeedbackList;

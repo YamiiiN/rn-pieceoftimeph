@@ -308,7 +308,6 @@
 // export default SingleProduct;
 
 // SingleProduct.js
-// SingleProduct.js
 import React, { useState, useEffect } from 'react';
 import {
     View,
@@ -345,6 +344,8 @@ const SingleProduct = () => {
     const [selectedImage, setSelectedImage] = useState(item.images[0]?.url);
     const [quantity, setQuantity] = useState(1);
     const [showFullDescription, setShowFullDescription] = useState(false);
+    const [editingReview, setEditingReview] = useState(null);
+    const [showReviewForm, setShowReviewForm] = useState(false);
     
     // Get review state from Redux
     const { 
@@ -359,26 +360,37 @@ const SingleProduct = () => {
 
     // Fetch reviews and check user review status when component mounts
     useEffect(() => {
-        dispatch(listReviewsByProduct(item._id, token));
-        
+        dispatch(listReviewsByProduct(item._id));
+
         if (user && token) {
-            dispatch(checkUserReview(item._id, token));
-            dispatch(checkCanReview(item._id, token));
+            dispatch(checkUserReview(item._id, token))
+                .then(review => {
+                    if (review) {
+                        // User has already reviewed, don't show form
+                        setShowReviewForm(false);
+                    } else {
+                        // User hasn't reviewed yet, check if they can
+                        dispatch(checkCanReview(item._id, token))
+                            .then(canReviewResult => {
+                                // Only show form if user can review
+                                setShowReviewForm(canReviewResult);
+                            });
+                    }
+                });
         }
     }, [dispatch, item._id, user, token]);
-    useEffect(() => {
-        console.log('Reviews in Redux:', reviews);
-    }, [reviews]);
 
-    useEffect(() => {
-        console.log('Current review state:', {
-            canReview,
-            userReview,
-            user,
-            itemId: item._id
-        });
-    }, [canReview, userReview, user, item._id]);
+    const handleEditReview = (review) => {
+        setEditingReview(review);
+        setShowReviewForm(true);
+    };
 
+    const handleReviewSubmitted = () => {
+        setShowReviewForm(false);
+        setEditingReview(null);
+        // Refresh reviews
+        dispatch(listReviewsByProduct(item._id));
+    };
 
     const handleAddToCart = async () => {
         try {
@@ -480,15 +492,18 @@ const SingleProduct = () => {
                         <Text style={styles.loadingText}>Loading reviews...</Text>
                     </View>
                 ) : (
-                    <FeedbackList feedbacks={reviews} />
+                    <FeedbackList 
+                        onEditReview={handleEditReview}
+                    />
                 )}
 
-                {/* Feedback Form - Only show if user can review or has already reviewed */}
-                {(user && (canReview || userReview)) && (
+                {/* Feedback Form - Only show if user can review or is editing */}
+                {(user && showReviewForm) && (
                     <FeedbackForm 
                         productId={item._id}
-                        existingReview={userReview}
+                        existingReview={editingReview || userReview}
                         token={token}
+                        onSubmitSuccess={handleReviewSubmitted}
                     />
                 )}
                 
@@ -539,8 +554,6 @@ const SingleProduct = () => {
         </View>
     );
 };
-
-
 
 const styles = StyleSheet.create({
     container: {
@@ -708,6 +721,23 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 16,
         fontWeight: 'bold',
+    },
+    addReviewButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#4CAF50',
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderRadius: 8,
+        marginHorizontal: 20,
+        marginVertical: 15,
+    },
+    addReviewText: {
+        color: '#FFFFFF',
+        fontWeight: '600',
+        fontSize: 16,
+        marginLeft: 8,
     },
 });
 
