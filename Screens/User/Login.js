@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import Toast from 'react-native-toast-message';
 import baseURL from '../../assets/common/baseUrl';
-import { useAuth } from '../../Context/Auth'; 
+import { useAuth } from '../../Context/Auth';
 import { getToken } from '../../utils/sqliteToken';
 
 export default function LoginScreen() {
@@ -19,6 +19,51 @@ export default function LoginScreen() {
     setShowPassword(!showPassword);
   };
 
+  // const handleLogin = async () => {
+  //   try {
+  //     const res = await axios.post(`${baseURL}/user/login`, {
+  //       email,
+  //       password
+  //     });
+
+  //     if (res.data.success) {
+  //       // store the token and user data using context
+  //       await login(res.data.user.token, res.data.user);
+
+  //       const storedToken = await getToken();
+  //       console.log('Stored Token:', storedToken)
+
+  //       Toast.show({
+  //         type: 'success',
+  //         text1: 'Login Successful',
+  //         text2: res.data.message || 'Welcome back!',
+  //         position: 'bottom'
+  //       });
+  //       setTimeout(() => {
+  //         navigation.navigate('MainNavigator');
+  //       }, 1500);
+
+  //     } else {
+  //       console.log('Login failed:', res.data);
+  //       Toast.show({
+  //         type: 'error',
+  //         text1: 'Login Failed',
+  //         text2: res.data.message || 'Invalid credentials',
+  //         position: 'bottom'
+  //       });
+
+  //     }
+  //   } catch (error) {
+  //     console.log('Login error:', error);
+  //     Toast.show({
+  //       type: 'error',
+  //       text1: 'Error',
+  //       text2: 'Something went wrong.',
+  //       position: 'bottom'
+  //     });
+
+  //   }
+  // };
   const handleLogin = async () => {
     try {
       const res = await axios.post(`${baseURL}/user/login`, {
@@ -27,9 +72,8 @@ export default function LoginScreen() {
       });
 
       if (res.data.success) {
-        // store the token and user data using context
         await login(res.data.user.token, res.data.user);
-        
+
         const storedToken = await getToken();
         console.log('Stored Token:', storedToken)
 
@@ -37,10 +81,16 @@ export default function LoginScreen() {
           type: 'success',
           text1: 'Login Successful',
           text2: res.data.message || 'Welcome back!',
-          position: 'bottom'
+          position: 'top'
         });
+
         setTimeout(() => {
-          navigation.navigate('MainNavigator');
+          // Check the role of the user
+          if (res.data.user.role === 'admin') {
+            navigation.navigate('AdminNavigator'); 
+          } else {
+            navigation.navigate('MainNavigator'); 
+          }
         }, 1500);
 
       } else {
@@ -51,7 +101,6 @@ export default function LoginScreen() {
           text2: res.data.message || 'Invalid credentials',
           position: 'bottom'
         });
-
       }
     } catch (error) {
       console.log('Login error:', error);
@@ -61,7 +110,6 @@ export default function LoginScreen() {
         text2: 'Something went wrong.',
         position: 'bottom'
       });
-
     }
   };
 
@@ -129,7 +177,7 @@ export default function LoginScreen() {
 
       <View style={styles.signUpContainer}>
         <Text style={styles.noAccountText}>Don't have an account? </Text>
-        
+
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
           <Text style={styles.signUpText}>SignUp</Text>
         </TouchableOpacity>

@@ -1,16 +1,18 @@
 import React, { useState, useRef } from 'react';
-import { 
-  View, 
-  TextInput, 
-  StyleSheet, 
-  TouchableOpacity, 
-  Animated, 
-  TouchableWithoutFeedback, 
-  Dimensions,
-  Text
+import {
+    View,
+    TextInput,
+    StyleSheet,
+    TouchableOpacity,
+    Animated,
+    TouchableWithoutFeedback,
+    Dimensions,
+    Text
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../../Context/Auth';
+import Toast from 'react-native-toast-message';
 
 const Header = ({ searchQuery, onSearchChange }) => {
     const [drawerVisible, setDrawerVisible] = useState(false);
@@ -18,7 +20,8 @@ const Header = ({ searchQuery, onSearchChange }) => {
     const fadeAnim = useRef(new Animated.Value(0)).current;
 
     const navigation = useNavigation();
-    
+    const { logout } = useAuth();
+
     const toggleDrawer = () => {
         if (drawerVisible) {
             closeDrawer();
@@ -26,7 +29,7 @@ const Header = ({ searchQuery, onSearchChange }) => {
             openDrawer();
         }
     };
-    
+
     const openDrawer = () => {
         setDrawerVisible(true);
         Animated.parallel([
@@ -42,7 +45,7 @@ const Header = ({ searchQuery, onSearchChange }) => {
             })
         ]).start();
     };
-    
+
     const closeDrawer = () => {
         Animated.parallel([
             Animated.timing(slideAnim, {
@@ -59,7 +62,38 @@ const Header = ({ searchQuery, onSearchChange }) => {
             setDrawerVisible(false);
         });
     };
-    
+
+    // const handleLogout = async () => {
+    //     try {
+    //         // Call logout function from AuthContext
+    //         await logout();
+
+    //         // Navigate to MainNavigator after logout
+    //         navigation.navigate('MainNavigator'); // Adjust this according to your navigation structure
+
+    //         // Log success and show the toast
+    //         console.log("Logout success");
+
+    //         Toast.show({
+    //             type: 'success',
+    //             text1: 'Logout Successful',
+    //             text2: 'You have successfully logged out. Please come again!',
+    //             position: 'top',
+    //         });
+    //     } catch (error) {
+    //         console.error("Logout Error:", error);
+
+    //         // Show error toast if something goes wrong
+    //         Toast.show({
+    //             type: 'error',
+    //             text1: 'Logout Failed',
+    //             text2: 'An error occurred while logging out. Please try again.',
+    //             position: 'top',
+    //         });
+    //     }
+    // };
+
+
     return (
         <View style={styles.container}>
             <TouchableOpacity style={styles.menuButton} onPress={toggleDrawer}>
@@ -73,7 +107,7 @@ const Header = ({ searchQuery, onSearchChange }) => {
                     placeholder="Search here..."
                     placeholderTextColor="gray"
                     value={searchQuery}
-                    onChangeText={(text) => onSearchChange(text)} 
+                    onChangeText={(text) => onSearchChange(text)}
                 />
                 {searchQuery.length > 0 && (
                     <TouchableOpacity onPress={() => onSearchChange('')} style={styles.clearButton}>
@@ -90,18 +124,18 @@ const Header = ({ searchQuery, onSearchChange }) => {
                     <Icon name="notifications-outline" size={22} color="black" />
                 </TouchableOpacity>
             </View>
-            
+
 
             {drawerVisible && (
                 <TouchableWithoutFeedback onPress={closeDrawer}>
                     <Animated.View style={[styles.overlay, { opacity: fadeAnim }]} />
                 </TouchableWithoutFeedback>
             )}
-            
+
             {/* Drawer */}
-            <Animated.View 
+            <Animated.View
                 style={[
-                    styles.drawer, 
+                    styles.drawer,
                     {
                         transform: [{ translateX: slideAnim }],
                     }
@@ -113,25 +147,25 @@ const Header = ({ searchQuery, onSearchChange }) => {
                         <Icon name="close-outline" size={24} color="#333" />
                     </TouchableOpacity>
                 </View>
-                
+
                 <View style={styles.drawerContent}>
-                    <TouchableOpacity style={styles.drawerItem}  onPress={() => navigation.navigate('User', {screen: 'Profile'})}>
+                    <TouchableOpacity style={styles.drawerItem} onPress={() => navigation.navigate('User', { screen: 'Profile' })}>
                         <Icon name="person-outline" size={22} color="#555" />
                         <Text style={styles.drawerItemText}>My Profile</Text>
                     </TouchableOpacity>
-                    
+
                     <TouchableOpacity style={styles.drawerItem}>
                         <Icon name="heart-outline" size={22} color="#555" />
                         <Text style={styles.drawerItemText}>Favourites</Text>
                     </TouchableOpacity>
-                    
-                    <TouchableOpacity style={styles.drawerItem} onPress={() => navigation.navigate('User', {screen: 'MyOrder'})}>
+
+                    <TouchableOpacity style={styles.drawerItem} onPress={() => navigation.navigate('User', { screen: 'MyOrder' })}>
                         <Icon name="receipt-outline" size={22} color="#555" />
                         <Text style={styles.drawerItemText}>Orders</Text>
                     </TouchableOpacity>
-                    
+
                     <View style={styles.divider} />
-                    
+
                     <TouchableOpacity style={styles.drawerItem}>
                         <Icon name="log-out-outline" size={22} color="#e74c3c" />
                         <Text style={[styles.drawerItemText, styles.logoutText]}>Logout</Text>

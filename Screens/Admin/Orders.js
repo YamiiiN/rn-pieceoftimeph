@@ -1,67 +1,33 @@
-import React, { useCallback, useState, useEffect } from "react";
-import { 
-  View, 
-  Text, 
-  FlatList, 
-  StyleSheet, 
-  ActivityIndicator, 
-  TouchableOpacity 
+import React, { useCallback, useState } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+  TouchableOpacity,
+  Image
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import { Picker } from "@react-native-picker/picker";
-import Toast from "react-native-toast-message";
-import ColorStatus from "../Shared/ColorStatus";
+import { fetchAllOrders } from '../../Redux/Actions/orderActions';
 import { useAuth } from '../../Context/Auth';
-import { fetchAllOrders, updateOrderStatus } from '../../Redux/Actions/orderActions';
 
 const Orders = () => {
   const dispatch = useDispatch();
+  const navigation = useNavigation();
   const { orders, loading, error } = useSelector(state => state.orders);
   const { token } = useAuth();
-  const [statusChange, setStatusChange] = useState({});
   const [refreshing, setRefreshing] = useState(false);
-
-  const getAvailableStatuses = (currentStatus) => {
-    switch (currentStatus) {
-      case "Pending":
-        return ["Pending", "Dispatched", "Delivered"];
-      case "Dispatched":
-        return ["Dispatched", "Delivered"];
-      case "Delivered":
-        return ["Delivered"];
-      default:
-        return ["Pending", "Dispatched", "Delivered"];
-    }
-  };
 
   useFocusEffect(
     useCallback(() => {
       if (token) {
         dispatch(fetchAllOrders(token));
       }
-      return () => {};
+      return () => { };
     }, [dispatch, token])
   );
-
-  const handleStatusChange = (orderId, status) => {
-    setStatusChange({
-      ...statusChange,
-      [orderId]: status
-    });
-  };
-
-  const handleUpdateOrder = (orderId) => {
-    if (token && statusChange[orderId]) {
-      dispatch(updateOrderStatus(orderId, statusChange[orderId], token));
-      Toast.show({
-        topOffset: 60,
-        type: "success",
-        text1: "Order Status Updated",
-        text2: "",
-      });
-    }
-  };
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -71,104 +37,61 @@ const Orders = () => {
     setRefreshing(false);
   };
 
-  const getOrderStatusIndicator = (status) => {
-    switch (status) {
-      case 'Delivered':
-        return <ColorStatus available />;
-      case 'Dispatched':
-        return <ColorStatus limited />;
-      case 'Processing':
-        return <ColorStatus limited />;
-      default:
-        return <ColorStatus unavailable />;
-    }
-  };
-
-  const getCardColor = (status) => {
-    switch (status) {
-      case 'Delivered':
-        return "#2ECC71"; 
-      case 'Dispatched':
-        return "#F1C40F"; 
-      default:
-        return "#E74C3C"; 
-    }
+  const handleOrderPress = (order) => {
+    navigation.navigate('OrderDetails', { order });
   };
 
   const renderOrderItem = ({ item }) => {
     return (
-      <View style={[
-        styles.orderCard, 
-        { backgroundColor: getCardColor(item.status) }
-      ]}>
-        <View style={styles.orderHeader}>
-          <Text style={styles.orderTitle}>Order #{item._id}</Text>
-          <Text style={styles.orderDate}>
-            {new Date(item.createdAt).toLocaleDateString()}
-          </Text>
+      <TouchableOpacity style={styles.orderItem} onPress={() => handleOrderPress(item)}>
+        <View style={styles.avatarContainer}>
+          <Image
+            source={
+              item.user?.images?.[0]?.url
+                ? { uri: item.user.images[0].url }
+                : require('../../assets/icon.png')
+            }
+            style={styles.avatar}
+          />
         </View>
-
-        <View style={styles.orderDetails}>
-          <Text style={styles.text}>Customer: {item.user?.first_name} {item.user?.last_name}</Text>
-          <Text style={styles.text}>Contact: {item.contact_number}</Text>
-          <Text style={styles.text}>Address: {item.shipping_address}</Text>
-          <Text style={styles.text}>Shipping Method: {item.shipping_method}</Text>
-          <Text style={styles.text}>Payment Method: {item.payment_method}</Text>
-          
-          <View style={styles.statusContainer}>
-            <Text style={styles.text}>Status: {item.status} </Text>
-            {getOrderStatusIndicator(item.status)}
-          </View>
-
-          <Text style={styles.priceText}>
-            Total: ₱{item.totalPrice.toFixed(2)}
+        <View style={styles.orderInfo}>
+          <Text style={styles.customerName}>{item.user?.first_name} {item.user?.last_name}</Text>
+          <Text style={styles.orderDate}>Received: {new Date(item.createdAt).toLocaleDateString()}</Text>
+          <Text style={styles.orderId}>
+            Order ID: {item._id ? item._id.slice(0, -8) : "D34261244667".slice(0, -8)}
           </Text>
-          
-          <Text style={styles.sectionTitle}>Order Items:</Text>
-          {item.order_items.map((orderItem, index) => (
-            <View key={index} style={styles.productItem}>
-              <Text style={styles.text}>
-                {orderItem.product?.name || 'Product'} x{orderItem.quantity}
-              </Text>
-              <Text style={styles.text}>
-                ${orderItem.product?.sell_price * orderItem.quantity}
-              </Text>
-            </View>
-          ))}
 
-          <View style={styles.updateSection}>
-            <Text style={styles.label}>Update Status:</Text>
-            <Picker
-              style={styles.picker}
-              selectedValue={statusChange[item._id] || item.status}
-              onValueChange={(value) => handleStatusChange(item._id, value)}
-            >
-              {getAvailableStatuses(item.status).map((status) => (
-                <Picker.Item 
-                key={status} 
-                label={status} 
-                value={status} 
-                enabled={status !== "Pending" || item.status === "Pending"} // Disable previous statuses
-                />
-            ))}
-            </Picker>
-
-            <TouchableOpacity
-              style={styles.updateButton}
-              onPress={() => handleUpdateOrder(item._id)}
-            >
-              <Text style={styles.buttonText}>Update Status</Text>
-            </TouchableOpacity>
-          </View>
         </View>
-      </View>
+        <View style={styles.statusContainer}>
+          <TouchableOpacity
+            style={[styles.statusButton, getStatusStyle(item.status)]}
+          >
+            <Text style={styles.statusText}>{item.status}</Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
     );
+  };
+
+  const getStatusStyle = (status) => {
+    switch (status.toLowerCase()) {
+      case 'delivered':
+        return styles.statusDelivered;
+      case 'out for delivery':
+        return styles.statusOutForDelivery;
+      case 'processed':
+      case 'confirmed':
+      case 'dispatched':
+        return styles.statusProcessing;
+      default:
+        return styles.statusPending;
+    }
   };
 
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#F68B1E" />
+        <ActivityIndicator size="large" color="#6A5ACD" />
       </View>
     );
   }
@@ -190,16 +113,21 @@ const Orders = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Admin Order Management</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Text style={styles.backButton}>{'<'}</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Orders</Text>
+        <View style={styles.placeholder} />
       </View>
 
       <FlatList
         data={orders}
         renderItem={renderOrderItem}
-        keyExtractor={(item) => item._id.toString()}
+        keyExtractor={(item) => item._id.slice(0, -8).toString()}
         refreshing={refreshing}
         onRefresh={handleRefresh}
         contentContainerStyle={styles.listContainer}
+        showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>No orders found</Text>
@@ -213,20 +141,35 @@ const Orders = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#FFFFFF",
   },
   header: {
-    padding: 15,
-    backgroundColor: "#F68B1E",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 15,
+    paddingBottom: 10,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  backButton: {
+    fontSize: 22,
+    fontWeight: '500',
+    color: '#000',
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "white",
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#000000",
+  },
+  placeholder: {
+    width: 20,
   },
   listContainer: {
-    padding: 10,
+    paddingHorizontal: 16,
+    paddingTop: 10,
   },
   center: {
     flex: 1,
@@ -247,97 +190,79 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "gray",
   },
-  orderCard: {
-    borderRadius: 10,
-    marginBottom: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.23,
-    shadowRadius: 2.62,
-    elevation: 4,
-    overflow: "hidden",
+  orderItem: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 12,
+    paddingHorizontal: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+    alignItems: 'center',
   },
-  orderHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 15,
-    backgroundColor: "rgba(0,0,0,0.1)",
+  avatarContainer: {
+    marginRight: 15,
   },
-  orderTitle: {
+  avatar: {
+    width: 45,
+    height: 45,
+    borderRadius: 25,
+    backgroundColor: '#F0F0F0',
+  },
+  orderInfo: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  customerName: {
     fontSize: 16,
-    fontWeight: "bold",
-    color: "#fff",
+    fontWeight: '600',
+    color: '#000000',
+    marginBottom: 2,
   },
   orderDate: {
-    fontSize: 14,
-    color: "#fff",
+    fontSize: 12,
+    color: '#888888',
+    marginBottom: 2,
   },
-  orderDetails: {
-    padding: 15,
-  },
-  text: {
-    fontSize: 14,
-    marginBottom: 5,
-    color: "#fff",
+  orderId: {
+    fontSize: 12,
+    color: '#888888',
   },
   statusContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 10,
+    marginLeft: 10,
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginTop: 10,
-    marginBottom: 5,
-    color: "#fff",
+  statusButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  productItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 5,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.2)",
+  statusText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#FFFFFF',
   },
-  priceText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    alignSelf: "flex-end",
-    marginVertical: 10,
-    color: "#fff",
+  statusDelivered: {
+    backgroundColor: '#4CAF50', // Green
   },
-  updateSection: {
-    marginTop: 15,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
-    padding: 10,
-    borderRadius: 5,
+  statusOutForDelivery: {
+    backgroundColor: '#2196F3', // Blue
   },
-  label: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 5,
-    color: "#fff",
+  statusProcessing: {
+    backgroundColor: '#FF9800', // Orange
   },
-  picker: {
-    backgroundColor: "#fff",
-    borderRadius: 5,
-    marginBottom: 10,
+  statusPending: {
+    backgroundColor: '#9E9E9E', // Gray
   },
-  updateButton: {
-    backgroundColor: "#3498db",
+  button: {
+    backgroundColor: "#6A5ACD",
     padding: 12,
-    borderRadius: 5,
-    alignItems: "center",
+    borderRadius: 6,
+    marginTop: 10,
   },
   buttonText: {
     color: "#fff",
-    fontWeight: "bold",
-  },
-  button: {
-    backgroundColor: "#F68B1E",
-    padding: 10,
-    borderRadius: 5,
-    marginTop: 10,
+    fontWeight: "500",
   },
 });
 
