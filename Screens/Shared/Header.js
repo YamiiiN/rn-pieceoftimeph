@@ -10,11 +10,14 @@ import {
   Text
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useNavigation } from '@react-navigation/native';
 
 const Header = ({ searchQuery, onSearchChange }) => {
     const [drawerVisible, setDrawerVisible] = useState(false);
     const slideAnim = useRef(new Animated.Value(-280)).current;
     const fadeAnim = useRef(new Animated.Value(0)).current;
+
+    const navigation = useNavigation();
     
     const toggleDrawer = () => {
         if (drawerVisible) {
@@ -112,7 +115,7 @@ const Header = ({ searchQuery, onSearchChange }) => {
                 </View>
                 
                 <View style={styles.drawerContent}>
-                    <TouchableOpacity style={styles.drawerItem}>
+                    <TouchableOpacity style={styles.drawerItem}  onPress={() => navigation.navigate('User', {screen: 'Profile'})}>
                         <Icon name="person-outline" size={22} color="#555" />
                         <Text style={styles.drawerItemText}>My Profile</Text>
                     </TouchableOpacity>
@@ -122,7 +125,7 @@ const Header = ({ searchQuery, onSearchChange }) => {
                         <Text style={styles.drawerItemText}>Favourites</Text>
                     </TouchableOpacity>
                     
-                    <TouchableOpacity style={styles.drawerItem}>
+                    <TouchableOpacity style={styles.drawerItem} onPress={() => navigation.navigate('User', {screen: 'MyOrder'})}>
                         <Icon name="receipt-outline" size={22} color="#555" />
                         <Text style={styles.drawerItemText}>Orders</Text>
                     </TouchableOpacity>

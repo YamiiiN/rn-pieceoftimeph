@@ -28,8 +28,8 @@ export default function App() {
       .then(() => console.log('Database initialized successfully'))
       .catch(error => console.error('Database initialization error:', error));
 
-    // ... your other useEffect code
   }, []);
+
   return (
     <AuthProvider>
       {/* <Provider store={store}>
@@ -44,13 +44,13 @@ export default function App() {
           <Toast />
         </NavigationContainer>
       </Provider> */}
-      
+
       <Provider store={store}>
 
-          <NavigationContainer>
-            <MainNavigator />
-          </NavigationContainer>
-          <Toast />
+        <NavigationContainer>
+          <MainNavigator />
+        </NavigationContainer>
+        <Toast />
 
       </Provider>
 

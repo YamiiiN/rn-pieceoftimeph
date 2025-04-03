@@ -5,6 +5,8 @@ const Stack = createStackNavigator();
 import Profile from "../Screens/User/Profile";
 import Login from "../Screens/User/Login";
 import Register from "../Screens/User/Register";
+import MyOrder from '../Screens/User/MyOrder';
+import TrackOrder from '../Screens/User/TrackOrder';
 
 function UserNavigator() {
   return (
@@ -32,13 +34,21 @@ function UserNavigator() {
         }}
       />
 
-      {/* <Stack.Screen
-                name="My Orders"
-                component={MyOrders}
-                options={{
-                    headerShown: false
-                }}
-            /> */}
+      <Stack.Screen
+        name="MyOrder"
+        component={MyOrder}
+        options={{
+          headerShown: false
+        }}
+      />
+
+      <Stack.Screen 
+      name="TrackOrder"
+      component={TrackOrder}
+      options={{
+        headerShown: false
+      }}
+      />
     </Stack.Navigator>
   )
 

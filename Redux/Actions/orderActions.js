@@ -7,7 +7,7 @@ export const ORDERS_FAIL = 'ORDERS_FAIL';
 export const ORDERS_UPDATE_SUCCESS = 'ORDERS_UPDATE_SUCCESS';
 export const ORDERS_UPDATE_FAIL = 'ORDERS_UPDATE_FAIL';
 
-// Action to fetch all orders
+// Action to fetch all orders of the login user
 export const fetchOrders = (token) => {
   return async (dispatch) => {
     try {
@@ -19,7 +19,7 @@ export const fetchOrders = (token) => {
         },
       };
       
-      const response = await axios.get(`${baseURL}/orders/user/orders`, config);
+      const response = await axios.get(`${baseURL}/order/user/orders`, config);
       
       if (response.status === 200) {
         dispatch({
