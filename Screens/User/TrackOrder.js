@@ -20,6 +20,7 @@ const TrackOrder = ({ route, navigation }) => {
         return moment(dateString).format('ddd MMMM DD, YYYY');
     };
 
+
     const renderOrderItem = ({ item }) => (
         <View style={styles.productItem}>
             <View style={styles.productDetails}>
@@ -27,6 +28,21 @@ const TrackOrder = ({ route, navigation }) => {
                     {item.product?.name || 'Product'}
                 </Text>
                 <Text style={styles.productQuantity}>Quantity: {item.quantity}</Text>
+
+                {/* Rate this product button - only shown when order is Delivered */}
+                {order.status === 'Delivered' && (
+                    <TouchableOpacity 
+                        style={styles.rateButton}
+                        onPress={() => navigation.navigate('SingleProduct', { 
+                            item: item.product 
+                        })}
+
+                        // onPress={() => navigation.navigate('SingleProduct', { screen: 'Product', item: item.product })}
+
+                    >
+                        <Text style={styles.rateButtonText}>Rate this product</Text>
+                    </TouchableOpacity>
+                )}
             </View>
             <Text style={styles.productPrice}>
                 ₱{(item.product?.sell_price * item.quantity).toFixed(2)}
@@ -252,17 +268,17 @@ const TrackOrder = ({ route, navigation }) => {
 const getStatusDescription = (status) => {
     switch (status) {
         case 'Pending':
-            return 'Your order has been received';
+            return 'We received your order';
         case 'Confirmed':
-            return 'Your order has been confirmed';
+            return 'We has been confirmed your order';
         case 'Processed':
-            return 'Your order is being prepared';
+            return 'We are processing your order';
         case 'Dispatched':
-            return 'Your order has left our warehouse';
+            return 'Your order is ready for shipping';
         case 'Out for Delivery':
-            return 'Your order is on its way to you';
+            return 'Your order is out for delivery';
         case 'Delivered':
-            return 'Your order has been delivered';
+            return 'Order Finished';
         default:
             return 'Your order is being processed';
     }
@@ -416,6 +432,7 @@ const styles = StyleSheet.create({
     productQuantity: {
         fontSize: 13,
         color: '#777',
+        marginBottom: 8,
     },
     productPrice: {
         fontSize: 14,
@@ -494,6 +511,20 @@ const styles = StyleSheet.create({
         color: 'white',
         fontWeight: 'bold',
         fontSize: 14,
+    },
+    // New styles for the rate button
+    rateButton: {
+        backgroundColor: '#4CD964',
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 4,
+        alignSelf: 'flex-start',
+        marginTop: 4,
+    },
+    rateButtonText: {
+        color: 'white',
+        fontSize: 12,
+        fontWeight: '500',
     },
 });
 
