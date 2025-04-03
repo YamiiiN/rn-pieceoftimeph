@@ -16,12 +16,10 @@ import moment from 'moment';
 const TrackOrder = ({ route, navigation }) => {
     const { order } = route.params;
 
-    // Format date to readable format
     const formatDate = (dateString) => {
         return moment(dateString).format('ddd MMMM DD, YYYY');
     };
 
-    // Render order items
     const renderOrderItem = ({ item }) => (
         <View style={styles.productItem}>
             <View style={styles.productDetails}>
@@ -36,7 +34,6 @@ const TrackOrder = ({ route, navigation }) => {
         </View>
     );
 
-    // Define tracking steps based on order status
     const getTrackingStatus = (status) => {
         const allStatuses = ['Pending', 'Confirmed', 'Processed', 'Dispatched', 'Out for Delivery', 'Delivered'];
         const currentIndex = allStatuses.indexOf(status);
@@ -49,7 +46,6 @@ const TrackOrder = ({ route, navigation }) => {
         }));
     };
 
-    // Get appropriate icon for each status
     const getStatusIcon = (status) => {
         switch (status) {
             case 'Pending': return '⏳';
@@ -64,16 +60,15 @@ const TrackOrder = ({ route, navigation }) => {
 
     const trackingSteps = getTrackingStatus(order.status || 'Pending');
 
-    // Calculate status color based on current status
     const getStatusColor = (status) => {
         switch (status) {
-            case 'Pending': return '#F5A623';
-            case 'Confirmed': return '#4A90E2';
-            case 'Processed': return '#9B59B6';
-            case 'Dispatched': return '#3498DB';
-            case 'Out for Delivery': return '#F1C40F';
-            case 'Delivered': return '#4CAF50';
-            default: return '#4CAF50';
+            case 'Pending': return '#4CD964';
+            case 'Confirmed': return '#4CD964';
+            case 'Processed': return '#4CD964';
+            case 'Dispatched': return '#4CD964';
+            case 'Out for Delivery': return '#4CD964';
+            case 'Delivered': return '#4CD964';
+            default: return '#4CD964';
         }
     };
 
@@ -125,7 +120,6 @@ const TrackOrder = ({ route, navigation }) => {
                         </View>
                     </View>
                 </View>
-
 
                 {/* Order Items */}
                 <View style={styles.card}>
@@ -205,7 +199,6 @@ const TrackOrder = ({ route, navigation }) => {
                         ))}
                     </View>
                 </View>
-
 
                 {/* Shipping Address */}
                 <View style={styles.card}>
