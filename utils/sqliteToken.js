@@ -7,7 +7,7 @@ export const initDatabase = async () => {
   try {
     db = await SQLite.openDatabaseAsync('auth.db');
 
-    console.log('Database path:', FileSystem.documentDirectory + 'SQLite/auth.db');
+    // console.log('Database path:', FileSystem.documentDirectory + 'SQLite/auth.db');
     await db.execAsync(
       'CREATE TABLE IF NOT EXISTS tokens (id INTEGER PRIMARY KEY NOT NULL, token TEXT, userId TEXT, expiresAt INTEGER);'
     );
