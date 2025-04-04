@@ -99,6 +99,8 @@ function AppWrapper() {
 
     if (user) {
       setIsAuthenticated(true);
+    } else {
+      setIsAuthenticated(false);
     }
   }, [user]);
 
