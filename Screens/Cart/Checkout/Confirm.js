@@ -15,9 +15,10 @@ import { useSelector, useDispatch } from 'react-redux';
 import baseURL from '../../../assets/common/baseUrl';
 
 import { useAuth } from '../../../Context/Auth';
-import { initDatabase } from '../../../Helper/cartDB'; 
+import { initDatabase } from '../../../Helper/cartDB';
 import { useEffect } from 'react';
 import { removeSelectedItemsFromCart } from '../../../Redux/Actions/cartActions';
+import { createOrder } from '../../../Redux/Actions/orderActions';
 
 const Confirm = (props) => {
     const navigation = useNavigation();
@@ -45,7 +46,7 @@ const Confirm = (props) => {
                 console.error("Failed to initialize database:", error);
             }
         };
-        
+
         initDb();
     }, []);
 
@@ -58,36 +59,22 @@ const Confirm = (props) => {
                 payment_method: paymentData.method,
                 contact_number: shippingData.phone,
                 order_items: selectedItems.map(item => ({
-                    product: item.id, 
+                    product: item.id,
                     quantity: item.quantity
                 }))
             };
-    
-            const response = await fetch(`${baseURL}/order/create`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(orderData)
-            });
-    
-            const data = await response.json();
-    
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to place order');
-            }
-    
+
+            dispatch(createOrder(orderData, token));
+
             Toast.show({
                 type: 'success',
                 position: 'top',
                 text1: 'Order placed successfully!',
                 text2: 'You will receive a confirmation email shortly.',
             });
-    
+
             try {
                 if (user && user.id) {
-                    // Remove only selected items from cart
                     dispatch(removeSelectedItemsFromCart(user.id));
                     console.log("Selected items removed from cart successfully");
                 } else {
@@ -96,14 +83,14 @@ const Confirm = (props) => {
             } catch (cartError) {
                 console.error("Error removing selected items, but order was placed:", cartError);
             }
-    
+
             navigation.reset({
                 index: 0,
                 routes: [{ name: 'Carts', params: { orderPlaced: true } }],
             });
         } catch (error) {
             console.error('Order creation error:', error);
-            
+
             Toast.show({
                 type: 'error',
                 position: 'top',
@@ -112,7 +99,6 @@ const Confirm = (props) => {
             });
         }
     };
-
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
