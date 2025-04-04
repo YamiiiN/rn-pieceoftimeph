@@ -100,6 +100,7 @@ export const getCartItems = async (userId) => {
     }
 };
 
+
 export const updateCartItemQuantity = async (userId, productId, quantity) => {
     if (!userId) {
         console.error('No user ID provided for updating cart');

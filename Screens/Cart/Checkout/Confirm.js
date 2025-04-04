@@ -11,17 +11,19 @@ import {
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Toast from 'react-native-toast-message';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import baseURL from '../../../assets/common/baseUrl';
 
 import { useAuth } from '../../../Context/Auth';
-import { clearCart, initDatabase } from '../../../Helper/cartDB'; 
+import { initDatabase } from '../../../Helper/cartDB'; 
 import { useEffect } from 'react';
+import { removeSelectedItemsFromCart } from '../../../Redux/Actions/cartActions';
 
 const Confirm = (props) => {
     const navigation = useNavigation();
     const route = useRoute();
     const { token, user } = useAuth();
+    const dispatch = useDispatch();
 
     const shippingData = props.route?.params?.shippingData || {};
     const paymentData = props.route?.params?.paymentData || {};
@@ -47,64 +49,8 @@ const Confirm = (props) => {
         initDb();
     }, []);
 
-    //     try {
-    //         // Format the order data according to your backend model requirements
-    //         const orderData = {
-    //             totalPrice: total,
-    //             shipping_address: `${shippingData.address}, ${shippingData.barangay}, ${shippingData.city}, ${shippingData.zipCode}`,
-    //             shipping_method: 'Standard Delivery (3-5 days)',
-    //             payment_method: paymentData.method,
-    //             contact_number: shippingData.phone,
-    //             order_items: selectedItems.map(item => ({
-    //                 product: item.id, // Assuming item.id matches your product ID in MongoDB
-    //                 quantity: item.quantity
-    //             }))
-    //         };
-
-    //         // Make the API call to create the order with the token from AuthContext
-    //         const response = await fetch(`${baseURL}/order/create`, {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //                 'Authorization': `Bearer ${token}` // Using the token from AuthContext
-    //             },
-    //             body: JSON.stringify(orderData)
-    //         });
-
-    //         const data = await response.json();
-
-    //         if (!response.ok) {
-    //             throw new Error(data.error || 'Failed to place order');
-    //         }
-
-    //         // Show success message
-    //         Toast.show({
-    //             type: 'success',
-    //             position: 'top',
-    //             text1: 'Order placed successfully!',
-    //             text2: 'You will receive a confirmation email shortly.',
-    //         });
-
-    //         // Navigate back to cart screen
-    //         navigation.reset({
-    //             index: 0,
-    //             routes: [{ name: 'Carts', params: { orderPlaced: true } }],
-    //         });
-    //     } catch (error) {
-    //         console.error('Order creation error:', error);
-
-    //         // Show error message
-    //         Toast.show({
-    //             type: 'error',
-    //             position: 'top',
-    //             text1: 'Failed to place order',
-    //             text2: error.message || 'Please try again later',
-    //         });
-    //     }
-    // };
     const handlePlaceOrder = async () => {
         try {
- 
             const orderData = {
                 totalPrice: total,
                 shipping_address: `${shippingData.address}, ${shippingData.barangay}, ${shippingData.city}, ${shippingData.zipCode}`,
@@ -141,13 +87,14 @@ const Confirm = (props) => {
     
             try {
                 if (user && user.id) {
-                    await clearCart(user.id);
-                    console.log("Cart cleared successfully");
+                    // Remove only selected items from cart
+                    dispatch(removeSelectedItemsFromCart(user.id));
+                    console.log("Selected items removed from cart successfully");
                 } else {
-                    console.error("Cannot clear cart: user.id is undefined");
+                    console.error("Cannot remove items: user id is undefined");
                 }
             } catch (cartError) {
-                console.error("Error clearing cart, but order was placed:", cartError);
+                console.error("Error removing selected items, but order was placed:", cartError);
             }
     
             navigation.reset({
