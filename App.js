@@ -206,7 +206,7 @@ function AppWrapper() {
 
   useEffect(() => {
     if (expoPushToken) {
-      // console.log("Push notification token:", expoPushToken);
+      console.log("Push notification token:", expoPushToken);
     }
   }, [expoPushToken]);
 

@@ -10,6 +10,37 @@ export const ORDERS_CREATE_LOADING = 'ORDERS_CREATE_LOADING';
 export const ORDERS_CREATE_SUCCESS = 'ORDERS_CREATE_SUCCESS';
 export const ORDERS_CREATE_FAIL = 'ORDERS_CREATE_FAIL';
 // Action to fetch all orders of the login user
+// export const fetchOrders = (token) => {
+//   return async (dispatch) => {
+//     try {
+//       dispatch({ type: ORDERS_LOADING });
+      
+//       const config = {
+//         headers: {
+//           Authorization: `Bearer ${token}`,
+//         },
+//       };
+      
+//       const response = await axios.get(`${baseURL}/order/user/orders`, config);
+      
+//       if (response.status === 200) {
+//         dispatch({
+//           type: ORDERS_SUCCESS,
+//           payload: response.data.orders
+//         });
+//       }
+//     } catch (error) {
+//       console.log('Error fetching orders:', error);
+//       dispatch({
+//         type: ORDERS_FAIL,
+//         payload: error.response && error.response.data.message
+//           ? error.response.data.message
+//           : 'Failed to load orders'
+//       });
+//     }
+//   };
+// };
+// Action to fetch all orders of the login user
 export const fetchOrders = (token) => {
   return async (dispatch) => {
     try {
@@ -28,6 +59,9 @@ export const fetchOrders = (token) => {
           type: ORDERS_SUCCESS,
           payload: response.data.orders
         });
+        
+        // Return the orders data
+        return response.data.orders;
       }
     } catch (error) {
       console.log('Error fetching orders:', error);
@@ -37,6 +71,7 @@ export const fetchOrders = (token) => {
           ? error.response.data.message
           : 'Failed to load orders'
       });
+      throw error; // Re-throw to handle in the component
     }
   };
 };
