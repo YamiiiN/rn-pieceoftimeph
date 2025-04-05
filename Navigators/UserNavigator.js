@@ -7,7 +7,7 @@ import Login from "../Screens/User/Login";
 import Register from "../Screens/User/Register";
 import MyOrder from '../Screens/User/MyOrder';
 import TrackOrder from '../Screens/User/TrackOrder';
-import Notification from '../Screens/User/Notification'
+// import Notification from '../Screens/User/Notification'
 
 function UserNavigator() {
   return (
@@ -51,13 +51,13 @@ function UserNavigator() {
         }}
       />
 
-      <Stack.Screen
+      {/* <Stack.Screen
         name="Notification"
         component={Notification}
         options={{
           headerShown: false
         }}
-      />
+      /> */}
     </Stack.Navigator>
   )
 

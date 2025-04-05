@@ -5,13 +5,16 @@ import ProductList from './ProductList';
 import Slider from '@react-native-community/slider';
 import axios from 'axios';
 import baseURL from '../../assets/common/baseUrl';
+import { NotificationService } from '../../Services/NotificationService';
+import { useAuth } from '../../Context/Auth';
 
 const ProductContainer = () => {
     const [searchQuery, setSearchQuery] = useState('');
+    const [unreadCount, setUnreadCount] = useState(0);
     const [products, setProducts] = useState([]);
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [loading, setLoading] = useState(true);
-
+    const { token } = useAuth();
     const [modalVisible, setModalVisible] = useState(false);
     const [priceRange, setPriceRange] = useState({ min: 0, max: 10000 });
     const [tempMinPrice, setTempMinPrice] = useState(0);
@@ -42,11 +45,11 @@ const ProductContainer = () => {
             );
         }
 
-       
-        filtered = filtered.filter(product => 
+
+        filtered = filtered.filter(product =>
             Number(product.sell_price) >= priceRange.min && Number(product.sell_price) <= priceRange.max
         );
-        
+
 
         setFilteredProducts(filtered);
     }, [searchQuery, products, priceRange]);
@@ -55,6 +58,28 @@ const ProductContainer = () => {
         setSearchQuery(text);
     };
 
+    const fetchUnreadCount = async () => {
+        if (!token) return;
+
+        try {
+            const response = await NotificationService.getUnreadCount(token);
+            if (response.data && response.data.unreadCount !== undefined) {
+                setUnreadCount(response.data.unreadCount);
+            }
+        } catch (err) {
+            console.error('Error fetching unread count:', err);
+        }
+    };
+
+
+    useEffect(() => {
+        fetchUnreadCount();
+
+        const interval = setInterval(fetchUnreadCount); 
+
+        return () => clearInterval(interval);
+    }, [token]);
+    
     const applyPriceFilter = () => {
         setPriceRange({ min: tempMinPrice, max: tempMaxPrice });
         setModalVisible(false);
@@ -63,7 +88,7 @@ const ProductContainer = () => {
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar backgroundColor="white" barStyle="dark-content" />
-            <Header searchQuery={searchQuery} onSearchChange={handleSearch} />
+            <Header searchQuery={searchQuery} onSearchChange={handleSearch}  unreadCount={unreadCount} />
 
             <ProductList products={filteredProducts} priceRange={priceRange} setModalVisible={setModalVisible} />
 
