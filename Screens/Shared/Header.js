@@ -62,6 +62,7 @@ const Header = ({ searchQuery, onSearchChange }) => {
             setDrawerVisible(false);
         });
     };
+    
 
     // const handleLogout = async () => {
     //     try {
@@ -120,7 +121,7 @@ const Header = ({ searchQuery, onSearchChange }) => {
                 <TouchableOpacity style={styles.iconButton}>
                     <Icon name="grid-outline" size={22} color="black" />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.iconButton}>
+                <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('User', { screen: 'Notification' })}> 
                     <Icon name="notifications-outline" size={22} color="black" />
                 </TouchableOpacity>
             </View>
