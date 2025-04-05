@@ -17,6 +17,14 @@ export const PRODUCT_DELETE_REQUEST = 'PRODUCT_DELETE_REQUEST';
 export const PRODUCT_DELETE_SUCCESS = 'PRODUCT_DELETE_SUCCESS';
 export const PRODUCT_DELETE_FAIL = 'PRODUCT_DELETE_FAIL';
 
+
+export const CATEGORY_LIST_REQUEST = 'CATEGORY_LIST_REQUEST';
+export const CATEGORY_LIST_SUCCESS = 'CATEGORY_LIST_SUCCESS';
+export const CATEGORY_LIST_FAIL = 'CATEGORY_LIST_FAIL';
+
+export const CATEGORY_PRODUCTS_REQUEST = 'CATEGORY_PRODUCTS_REQUEST';
+export const CATEGORY_PRODUCTS_SUCCESS = 'CATEGORY_PRODUCTS_SUCCESS';
+export const CATEGORY_PRODUCTS_FAIL = 'CATEGORY_PRODUCTS_FAIL';
 // Fetch all products
 export const listProducts = () => async (dispatch) => {
     try {
@@ -120,6 +128,43 @@ export const deleteProduct = (id, token) => async (dispatch) => {
     } catch (error) {
         dispatch({
             type: PRODUCT_DELETE_FAIL,
+            payload: error.response?.data?.message || error.message
+        });
+    }
+};
+
+export const listCategories = () => async (dispatch) => {
+    try {
+        dispatch({ type: CATEGORY_LIST_REQUEST });
+
+        const { data } = await axios.get(`${baseURL}/product/getOneProductPerCategory`);
+
+        dispatch({
+            type: CATEGORY_LIST_SUCCESS,
+            payload: data.products
+        });
+    } catch (error) {
+        dispatch({
+            type: CATEGORY_LIST_FAIL,
+            payload: error.response?.data?.message || error.message
+        });
+    }
+};
+
+// Fetch products by category
+export const fetchProductsByCategory = (category) => async (dispatch) => {
+    try {
+        dispatch({ type: CATEGORY_PRODUCTS_REQUEST });
+
+        const { data } = await axios.get(`${baseURL}/product/get/productsByCategory/${category}`);
+
+        dispatch({
+            type: CATEGORY_PRODUCTS_SUCCESS,
+            payload: data.products
+        });
+    } catch (error) {
+        dispatch({
+            type: CATEGORY_PRODUCTS_FAIL,
             payload: error.response?.data?.message || error.message
         });
     }

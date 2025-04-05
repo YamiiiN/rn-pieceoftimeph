@@ -1,28 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, View, Text, Image, ActivityIndicator } from 'react-native';
-import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
-import baseURL from '../../assets/common/baseUrl';
-
+import { useDispatch, useSelector } from 'react-redux';
+import { listCategories } from '../../Redux/Actions/productActions';
 const CategoryFilter = () => {
-    const [categories, setCategories] = useState([]);
-    const [loading, setLoading] = useState(true);
     const navigation = useNavigation(); 
+    const dispatch = useDispatch();
+    const { categories, loading } = useSelector(state => state.products);
 
     useEffect(() => {
-        const fetchCategoriesWithImages = async () => {
-            try {
-                const response = await axios.get(`${baseURL}/product/getOneProductPerCategory`);
-                setCategories(response.data.products);
-            } catch (error) {
-                console.error('Error fetching categories:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
+        dispatch(listCategories());
+    }, [dispatch]);
 
-        fetchCategoriesWithImages();
-    }, []);
 
     if (loading) {
         return <ActivityIndicator size="large" color="red" />;
