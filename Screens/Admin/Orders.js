@@ -114,9 +114,9 @@ const Orders = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backButton}>{'<'}</Text>
+          {/* <Text style={styles.backButton}>{'<'}</Text> */}
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Orders</Text>
+        <Text style={styles.headerTitle}>Order Management</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -153,6 +153,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
     borderBottomColor: '#F0F0F0',
+    elevation: 2,
   },
   backButton: {
     fontSize: 22,

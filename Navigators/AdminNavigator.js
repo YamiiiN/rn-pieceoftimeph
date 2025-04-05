@@ -1,52 +1,63 @@
 import React from "react"
-import { createStackNavigator } from "@react-navigation/stack"
+import { View, Text, StyleSheet } from 'react-native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import Icon from 'react-native-vector-icons/Ionicons';
 
-import Products from "../Screens/Admin/Products"
-import ProductForm from "../Screens/Admin/ProductForm"
-import Orders from "../Screens/Admin/Orders"
-import OrderDetails from "../Screens/Admin/OrderDetails"
+import DashboardNavigator from './DashboardNavigator'
+import ProductNavigator from "./ProductNavigator";
+import OrderNavigator from "./OrderNavigator";
+import UserNavigator from "./UserNavigator";
 
-const Stack = createStackNavigator();
-
+const Tab = createBottomTabNavigator();
 const AdminNavigator = () => {
 
     return (
-        <Stack.Navigator>
-            {/* <Stack.Screen
-                name="Products"
-                component={Products}
-                options={{
-                    title: "Products",
-                    headerShown: false,
-                }}
-            />
-
-            <Stack.Screen 
-            name="ProductForm" 
-            component={ProductForm} 
-            options={{
-                title: "ProductForm",
-                headerShown: false,
+        <Tab.Navigator
+            initialRouteName="Dashboard"
+            screenOptions={{
+                tabBarHideOnKeyboard: true,
+                tabBarShowLabel: false,
+                tabBarStyle: { backgroundColor: '#584e51' },
+                tabBarActiveTintColor: 'black',
+                tabBarInactiveTintColor: 'white',
             }}
-            /> */}
-            <Stack.Screen
-                name="Orders"
-                component={Orders}
+
+        >
+            <Tab.Screen
+                name="Dashboard"
+                component={DashboardNavigator}
                 options={{
-                    title: "Orders",
                     headerShown: false,
+                    tabBarIcon: ({ color }) => <Icon name="analytics" color={color} size={30} />
                 }}
             />
 
-            <Stack.Screen
-                name="OrderDetails"
-                component={OrderDetails}
+            <Tab.Screen
+                name="ProductNavigator"
+                component={ProductNavigator}
                 options={{
-                    title: "OrderDetails",
                     headerShown: false,
+                    tabBarIcon: ({ color }) => <Icon name="add-circle" color={color} size={30} />
                 }}
             />
-        </Stack.Navigator>
+
+            <Tab.Screen
+                name="OrderNavigator"
+                component={OrderNavigator}
+                options={{
+                    headerShown: false,
+                    tabBarIcon: ({ color }) => <Icon name="clipboard" color={color} size={30} />
+                }}
+            />
+            <Tab.Screen
+                name="User"
+                component={UserNavigator}
+                options={{
+                    headerShown: false,
+                    tabBarIcon: ({ color }) => <Icon name="person-sharp" color={color} size={30} />
+                }}
+            />
+        </Tab.Navigator>
     )
 }
 export default AdminNavigator
