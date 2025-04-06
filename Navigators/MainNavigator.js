@@ -108,46 +108,45 @@
 
 // export default MainNavigator;
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { useSelector } from 'react-redux';
-
+import { useSelector, useDispatch } from 'react-redux';
+import axios from "axios";
 import CartNavigator from "./CartNavigator";
 import HomeNavigator from "./HomeNavigator";
 import NotificationNavigator from './NotificationNavigator';
 import UserNavigator from "./UserNavigator";
-import { NotificationService } from '../Services/NotificationService';
+import { fetchUnreadCount } from '../Redux/Actions/notificationAction'; // Import the action
 import { useAuth } from '../Context/Auth';
 
 const Tab = createBottomTabNavigator();
 
 const MainNavigator = () => {
   const cartItems = useSelector(state => state.cart.cartItems);
-  const cartItemCount = cartItems.reduce((total, item) => total + item.quantity, 0); 
+  const cartItemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
+
+  const unreadCount = useSelector(state =>
+    state.notifications ? state.notifications.unreadCount : 0
+  );
+  const dispatch = useDispatch();
   const { token } = useAuth();
-  const [unreadCount, setUnreadCount] = useState(0);
-
-  const fetchUnreadCount = async () => {
-    if (!token) return;
-
-    try {
-      const response = await NotificationService.getUnreadCount(token);
-      if (response.data && response.data.unreadCount !== undefined) {
-        setUnreadCount(response.data.unreadCount);
-      }
-    } catch (err) {
-      console.error('Error fetching unread count:', err);
-    }
-  };
 
   useEffect(() => {
-    fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount); // refresh every 10 seconds
-    return () => clearInterval(interval);
-  }, [token]);
+    if (token) {
+      
+      dispatch(fetchUnreadCount(token));
+
+      
+      const interval = setInterval(() => {
+        dispatch(fetchUnreadCount(token));
+      }); 
+
+      return () => clearInterval(interval);
+    }
+  }, [token, dispatch]);
 
   return (
     <Tab.Navigator
@@ -155,9 +154,9 @@ const MainNavigator = () => {
       screenOptions={{
         tabBarHideOnKeyboard: true,
         tabBarShowLabel: false,
-        tabBarStyle: { backgroundColor: '#584e51' }, 
+        tabBarStyle: { backgroundColor: '#584e51' },
         tabBarActiveTintColor: 'black',
-        tabBarInactiveTintColor: 'white', 
+        tabBarInactiveTintColor: 'white',
       }}
     >
       <Tab.Screen

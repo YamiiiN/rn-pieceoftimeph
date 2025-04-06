@@ -20,11 +20,11 @@ const ProductCard = ({ item }) => {
                 resizeMode="contain"
                 source={{ uri: item.images[0]?.url }}
             />
-            <View style={styles.favoriteContainer}>
+            {/* <View style={styles.favoriteContainer}>
                 <TouchableOpacity style={styles.favoriteButton}>
                     <Icon name="heart-outline" size={18} color="gray" />
                 </TouchableOpacity>
-            </View>
+            </View> */}
             <View style={styles.cardBody}>
                 <View style={styles.priceContainer}>
                     <Text style={styles.price}>₱ {formattedPrice}</Text>

@@ -230,12 +230,12 @@ export function useNotifications() {
         registerForPushNotifications();
 
         notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
-            console.log('Notification received:', notification);
+            // console.log('Notification received:', notification);
             setNotification(notification);
         });
 
         responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
-            console.log('Notification response:', response);
+            // console.log('Notification response:', response);
             // Handle notification response (e.g., navigate to a specific screen)
         });
 
@@ -259,15 +259,15 @@ export function useNotifications() {
 
         try {
             const { status: existingStatus } = await Notifications.getPermissionsAsync();
-            console.log('Initial notification permission status:', existingStatus);
+            // console.log('Initial notification permission status:', existingStatus);
 
             let finalStatus = existingStatus;
 
             if (existingStatus !== 'granted') {
-                console.log('Requesting notification permissions...');
+                // console.log('Requesting notification permissions...');
                 const { status } = await Notifications.requestPermissionsAsync();
                 finalStatus = status;
-                console.log('Permission request result:', status);
+                // console.log('Permission request result:', status);
             }
 
             if (finalStatus !== 'granted') {
@@ -280,15 +280,15 @@ export function useNotifications() {
             }
 
             // Get the token
-            console.log('Getting Expo push token...');
+            // console.log('Getting Expo push token...');
             const projectId = Constants.expoConfig?.extra?.eas?.projectId;
-            console.log('Using project ID:', projectId);
+            // console.log('Using project ID:', projectId);
 
             const token = await Notifications.getExpoPushTokenAsync({
                 projectId: projectId,
             });
 
-            console.log('Push token obtained:', token.data);
+            // console.log('Push token obtained:', token.data);
             setExpoPushToken(token.data);
 
             // Configure for Android

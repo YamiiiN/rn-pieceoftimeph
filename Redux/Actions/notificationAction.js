@@ -73,18 +73,39 @@ export const fetchNotifications = (token) => async (dispatch) => {
   }
 };
 
+// export const fetchUnreadCount = (token) => async (dispatch) => {
+//   try {
+//     const response = await NotificationService.getUnreadCount(token);
+//     if (response.data && response.data.unreadCount !== undefined) {
+//       dispatch(setUnreadCount(response.data.unreadCount));
+//     }
+//     return response.data.unreadCount;
+//   } catch (error) {
+//     console.error('Error fetching unread count:', error);
+//     throw error;
+//   }
+// };
+
 export const fetchUnreadCount = (token) => async (dispatch) => {
   try {
     const response = await NotificationService.getUnreadCount(token);
     if (response.data && response.data.unreadCount !== undefined) {
-      dispatch(setUnreadCount(response.data.unreadCount));
+      const count = response.data.unreadCount;
+      
+      // If count is 0, just return it without error
+      if (count === 0) {
+        return count;
+      }
+
+      dispatch(setUnreadCount(count));
+      return count;
     }
-    return response.data.unreadCount;
   } catch (error) {
     console.error('Error fetching unread count:', error);
     throw error;
   }
 };
+
 
 export const markAsRead = (notificationId, token) => async (dispatch) => {
   try {
