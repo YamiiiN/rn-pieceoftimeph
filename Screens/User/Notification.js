@@ -30,7 +30,6 @@ const Notification = () => {
   const [error, setError] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Helper function to extract IDs from notification messages
   const getIdFromMessage = (message, type) => {
     if (type === 'order') {
       const orderPattern = /(?:order\s*#|#)(\w+)/i;
@@ -44,7 +43,6 @@ const Notification = () => {
     return null;
   };
 
-  // Fetch notifications from API
   const fetchNotifications = async () => {
     if (!token) {
       setError('Authentication required');
@@ -71,7 +69,6 @@ const Notification = () => {
     }
   };
 
-  // Fetch unread notification count
   const fetchUnreadCount = async () => {
     if (!token) return;
 
@@ -85,12 +82,10 @@ const Notification = () => {
     }
   };
 
-  // Initial fetch
   useEffect(() => {
     fetchNotifications();
   }, [token]);
 
-  // Listen for new push notifications
   useEffect(() => {
     if (notification) {
       // When a new notification is received, refresh the list
@@ -98,7 +93,6 @@ const Notification = () => {
     }
   }, [notification]);
 
-  // Format timestamp to relative time
   const formatTime = (timestamp) => {
     try {
       const date = new Date(timestamp);
@@ -116,7 +110,6 @@ const Notification = () => {
     }
   };
 
-  // Mark notification as read
   const markAsRead = async (id) => {
     try {
       // Optimistically update UI
@@ -144,7 +137,6 @@ const Notification = () => {
     }
   };
 
-  // Mark all notifications as read
   const markAllAsRead = async () => {
     if (!token || notifications.length === 0) return;
 
@@ -167,7 +159,6 @@ const Notification = () => {
     }
   };
 
-  // Delete notification
   const deleteNotification = async (id) => {
     try {
       // Optimistically update UI
@@ -189,13 +180,11 @@ const Notification = () => {
     }
   };
 
-  // Handle refresh
   const onRefresh = () => {
     setRefreshing(true);
     fetchNotifications();
   };
 
-  // Check push notification token status
   const checkTokenStatus = () => {
     if (tokenStatus.error) {
       Alert.alert(
@@ -212,8 +201,6 @@ const Notification = () => {
       Alert.alert('Notification Token Status', 'Not registered for push notifications yet.');
     }
   };
-
-  // Navigate to TrackOrder when an order notification is tapped
   const navigateToTrackOrder = async (item) => {
     if (item.type === 'order') {
       let orderId = item.orderId || getIdFromMessage(item.message, 'order');
@@ -254,61 +241,45 @@ const Notification = () => {
     }
   };
 
-  // New function to navigate to SingleProduct when a promotion notification is tapped
-  // const navigateToPromotion = async (item) => {
-  //   if (item.type === 'promo') {
-  //     let productId = item.productId || getIdFromMessage(item.message, 'promo');
-
-  //     if (productId) {
-  //       try {
-  //         setLoading(true);
-
-  //         // Fetch product details from API
-  //         const response = await axios.get(`${baseURL}/products/${productId}`);
-          
-  //         if (response.data && response.data.product) {
-  //           // Navigate to SingleProduct with the product data
-  //           navigation.navigate('SingleProduct', {
-  //             item: response.data.product
-  //           });
-  //         } else {
-  //           Alert.alert('Warning', 'Could not retrieve product information. Please try again.');
-  //         }
-  //       } catch (err) {
-  //         console.error('Error navigating to product:', err);
-  //         Alert.alert('Error', 'Failed to load product details.');
-  //       } finally {
-  //         setLoading(false);
-  //       }
-  //     }
-  //   }
-  // };
   const navigateToPromotion = async (item) => {
     if (item.type !== 'promo') return;
-  
+
     try {
       setLoading(true);
-  
-      // ✅ Get productId from notification.data (preferred) or fallback to parsing
-      const productId = item.data?.productId || getIdFromMessage(item.message, 'promo');
-  
+
+      console.log('Notification item:', JSON.stringify(item, null, 2));
+
+      const productId = item.data?.productId ||
+        item.productId ||
+        getIdFromMessage(item.message, 'promo');
+
       if (!productId) {
         Alert.alert('Error', 'No product ID found in notification');
         return;
       }
-  
-      // Fetch product details
-      const response = await axios.get(`${baseURL}/products/${productId}`, {
+
+      const response = await axios.get(`${baseURL}/product/${productId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-  
+
+
       if (response.data?.product) {
-        navigation.navigate('SingleProduct', { item: response.data.product });
+        navigation.navigate('SingleProduct', {
+          item: response.data.product
+        });
       } else {
-        Alert.alert('Error', 'Product not found');
+
+        navigation.navigate('SingleProduct', {
+          productId: productId,
+          item: { _id: productId }
+        });
+        Alert.alert('Warning', 'Could not retrieve full product details');
       }
     } catch (err) {
-      Alert.alert('Error', err.response?.data?.message || 'Failed to load product');
+      console.error('Product fetch error:', err.response?.data || err.message);
+
+
+      Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
     }
