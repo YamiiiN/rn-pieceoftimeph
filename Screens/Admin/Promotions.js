@@ -33,7 +33,7 @@ const Promotions = () => {
             
             if (response.ok) {
                 const sortedPromotions = data.promotions.sort((a, b) => {
-                    // Sort by active status first, then by start date
+                    
                     if (a.isActive !== b.isActive) return a.isActive ? -1 : 1;
                     return new Date(a.startDate) - new Date(b.startDate);
                 });
@@ -196,9 +196,9 @@ const Promotions = () => {
                     </View>
                 
                     <View style={styles.productRow}>
-                        <Text style={styles.productLabel}>Category: </Text>
+                        <Text style={styles.productLabel}>Product: </Text>
                         <Text style={styles.productName} numberOfLines={1}>
-                            {item.category}
+                            {item.product ? item.product.name : "No product assigned"}
                         </Text>
                     </View>
                     

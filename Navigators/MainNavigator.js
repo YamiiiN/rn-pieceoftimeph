@@ -1,43 +1,52 @@
-// import React from 'react';
+// import React, { useEffect } from 'react';
 // import { View, Text, StyleSheet } from 'react-native';
 // import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 // import Icon from 'react-native-vector-icons/Ionicons';
-// import { useSelector } from 'react-redux';
-
+// import { useSelector, useDispatch } from 'react-redux';
+// import axios from "axios";
 // import CartNavigator from "./CartNavigator";
 // import HomeNavigator from "./HomeNavigator";
 // import NotificationNavigator from './NotificationNavigator';
 // import UserNavigator from "./UserNavigator";
-// import { NotificationService } from '../Services/NotificationService';
-// const Tab = createBottomTabNavigator();
+// import { fetchUnreadCount } from '../Redux/Actions/notificationAction'; // Import the action
 // import { useAuth } from '../Context/Auth';
+
+// const Tab = createBottomTabNavigator();
 
 // const MainNavigator = () => {
 //   const cartItems = useSelector(state => state.cart.cartItems);
-//   const cartItemCount = cartItems.reduce((total, item) => total + item.quantity, 0); 
+//   const cartItemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
-//    const { token } = useAuth();
-// const fetchUnreadCount = async () => {
-//         if (!token) return;
 
-//         try {
-//             const response = await NotificationService.getUnreadCount(token);
-//             if (response.data && response.data.unreadCount !== undefined) {
-//                 setUnreadCount(response.data.unreadCount);
-//             }
-//         } catch (err) {
-//             console.error('Error fetching unread count:', err);
-//         }
-//     };
+//   const unreadCount = useSelector(state =>
+//     state.notifications ? state.notifications.unreadCount : 0
+//   );
+//   const dispatch = useDispatch();
+//   const { token } = useAuth();
+
+//   useEffect(() => {
+//     if (token) {
+      
+//       dispatch(fetchUnreadCount(token));
+
+      
+//       const interval = setInterval(() => {
+//         dispatch(fetchUnreadCount(token));
+//       }); 
+
+//       return () => clearInterval(interval);
+//     }
+//   }, [token, dispatch]);
+
 //   return (
 //     <Tab.Navigator
 //       initialRouteName="Home"
 //       screenOptions={{
 //         tabBarHideOnKeyboard: true,
 //         tabBarShowLabel: false,
-//         tabBarStyle: { backgroundColor: '#584e51' }, 
+//         tabBarStyle: { backgroundColor: '#584e51' },
 //         tabBarActiveTintColor: 'black',
-//         tabBarInactiveTintColor: 'white', 
+//         tabBarInactiveTintColor: 'white',
 //       }}
 //     >
 //       <Tab.Screen
@@ -53,7 +62,19 @@
 //         name="NotificationNavigator"
 //         component={NotificationNavigator}
 //         options={{
-//           tabBarIcon: ({ color }) => <Icon name="notifications" color={color} size={30} />
+//           headerShown: false,
+//           tabBarIcon: ({ color }) => (
+//             <View>
+//               <Icon name="notifications" color={color} size={30} />
+//               {unreadCount > 0 && (
+//                 <View style={styles.badge}>
+//                   <Text style={styles.badgeText}>
+//                     {unreadCount > 99 ? '99+' : unreadCount}
+//                   </Text>
+//                 </View>
+//               )}
+//             </View>
+//           )
 //         }}
 //       />
 
@@ -104,6 +125,23 @@
 //     fontSize: 12,
 //     fontWeight: 'bold',
 //   },
+//   badge: {
+//     position: 'absolute',
+//     right: -6,
+//     top: -4,
+//     backgroundColor: 'red',
+//     borderRadius: 10,
+//     minWidth: 18,
+//     height: 18,
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//     paddingHorizontal: 3,
+//   },
+//   badgeText: {
+//     color: 'white',
+//     fontSize: 10,
+//     fontWeight: 'bold',
+//   },
 // });
 
 // export default MainNavigator;
@@ -118,7 +156,7 @@ import CartNavigator from "./CartNavigator";
 import HomeNavigator from "./HomeNavigator";
 import NotificationNavigator from './NotificationNavigator';
 import UserNavigator from "./UserNavigator";
-import { fetchUnreadCount } from '../Redux/Actions/notificationAction'; // Import the action
+import { fetchUnreadCount } from '../Redux/Actions/notificationAction';
 import { useAuth } from '../Context/Auth';
 
 const Tab = createBottomTabNavigator();
@@ -127,7 +165,6 @@ const MainNavigator = () => {
   const cartItems = useSelector(state => state.cart.cartItems);
   const cartItemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
-
   const unreadCount = useSelector(state =>
     state.notifications ? state.notifications.unreadCount : 0
   );
@@ -135,17 +172,29 @@ const MainNavigator = () => {
   const { token } = useAuth();
 
   useEffect(() => {
-    if (token) {
+    let isMounted = true;
+    
+    const fetchNotifications = async () => {
+      if (!token || !isMounted) return;
       
-      dispatch(fetchUnreadCount(token));
-
+      try {
+        await dispatch(fetchUnreadCount(token));
+      } catch (error) {
       
-      const interval = setInterval(() => {
-        dispatch(fetchUnreadCount(token));
-      }); 
+      }
+    };
+    
+ 
+    fetchNotifications();
+    
+  
+    const interval = setInterval(fetchNotifications, 30000);
+    
 
-      return () => clearInterval(interval);
-    }
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, [token, dispatch]);
 
   return (
@@ -255,4 +304,3 @@ const styles = StyleSheet.create({
 });
 
 export default MainNavigator;
-

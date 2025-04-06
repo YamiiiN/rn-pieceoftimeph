@@ -1,4 +1,3 @@
-// Action Types
 export const FETCH_NOTIFICATIONS_REQUEST = 'FETCH_NOTIFICATIONS_REQUEST';
 export const FETCH_NOTIFICATIONS_SUCCESS = 'FETCH_NOTIFICATIONS_SUCCESS';
 export const FETCH_NOTIFICATIONS_FAILURE = 'FETCH_NOTIFICATIONS_FAILURE';
@@ -9,8 +8,8 @@ export const DELETE_NOTIFICATION = 'DELETE_NOTIFICATION';
 export const ADD_NOTIFICATION = 'ADD_NOTIFICATION';
 export const INCREMENT_UNREAD_COUNT = 'INCREMENT_UNREAD_COUNT';
 export const DECREMENT_UNREAD_COUNT = 'DECREMENT_UNREAD_COUNT';
+import { NotificationService } from '../../Services/NotificationService';
 
-// Action Creators
 export const fetchNotificationsRequest = () => ({
   type: FETCH_NOTIFICATIONS_REQUEST
 });
@@ -57,8 +56,6 @@ export const decrementUnreadCount = () => ({
   type: DECREMENT_UNREAD_COUNT
 });
 
-// Thunk Actions
-import { NotificationService } from '../../Services/NotificationService';
 
 export const fetchNotifications = (token) => async (dispatch) => {
   dispatch(fetchNotificationsRequest());
@@ -73,39 +70,21 @@ export const fetchNotifications = (token) => async (dispatch) => {
   }
 };
 
-// export const fetchUnreadCount = (token) => async (dispatch) => {
-//   try {
-//     const response = await NotificationService.getUnreadCount(token);
-//     if (response.data && response.data.unreadCount !== undefined) {
-//       dispatch(setUnreadCount(response.data.unreadCount));
-//     }
-//     return response.data.unreadCount;
-//   } catch (error) {
-//     console.error('Error fetching unread count:', error);
-//     throw error;
-//   }
-// };
-
 export const fetchUnreadCount = (token) => async (dispatch) => {
   try {
     const response = await NotificationService.getUnreadCount(token);
-    if (response.data && response.data.unreadCount !== undefined) {
+    if (response && response.data && response.data.unreadCount !== undefined) {
       const count = response.data.unreadCount;
-      
-      // If count is 0, just return it without error
-      if (count === 0) {
-        return count;
-      }
-
       dispatch(setUnreadCount(count));
       return count;
     }
+    return 0; 
   } catch (error) {
-    console.error('Error fetching unread count:', error);
-    throw error;
+    
+    console.log('Error fetching unread count, will retry later');
+    return 0;  
   }
 };
-
 
 export const markAsRead = (notificationId, token) => async (dispatch) => {
   try {
@@ -135,7 +114,6 @@ export const deleteNotification = (notificationId, token) => async (dispatch, ge
   try {
     await NotificationService.deleteNotification(notificationId, token);
     
-    // Check if the notification was unread before decrementing count
     const state = getState();
     const notification = state.notifications.items.find(item => item._id === notificationId);
     
