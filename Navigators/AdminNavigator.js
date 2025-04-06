@@ -7,6 +7,7 @@ import DashboardNavigator from './DashboardNavigator'
 import ProductNavigator from "./ProductNavigator";
 import OrderNavigator from "./OrderNavigator";
 import UserNavigator from "./UserNavigator";
+import PromotionNavigator from "./PromotionNavigator";
 
 const Tab = createBottomTabNavigator();
 const AdminNavigator = () => {
@@ -40,6 +41,14 @@ const AdminNavigator = () => {
                     tabBarIcon: ({ color }) => <Icon name="add-circle" color={color} size={30} />
                 }}
             />
+               <Tab.Screen
+                name="PromotionNavigator"
+                component={PromotionNavigator}
+                options={{
+                    headerShown: false,
+                    tabBarIcon: ({ color }) => <Icon name="pricetags" color={color} size={30} />
+                }}
+            />
 
             <Tab.Screen
                 name="OrderNavigator"
@@ -57,6 +66,7 @@ const AdminNavigator = () => {
                     tabBarIcon: ({ color }) => <Icon name="person-sharp" color={color} size={30} />
                 }}
             />
+         
         </Tab.Navigator>
     )
 }
