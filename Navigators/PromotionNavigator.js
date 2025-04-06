@@ -4,7 +4,7 @@ import { createStackNavigator } from "@react-navigation/stack"
 const Stack = createStackNavigator();
 
 import Promotions from '../Screens/Admin/Promotions';
-import PromotionForm from '../Screens/Admin/PromotionForms';
+import PromotionForm from '../Screens/Admin/PromotionForm';
 
 function ProductNavigator() {
     return (
