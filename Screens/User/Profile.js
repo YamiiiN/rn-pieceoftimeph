@@ -19,6 +19,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../../Context/Auth';
 import axios from 'axios';
 import baseURL from '../../assets/common/baseUrl';
+import { useNavigation } from '@react-navigation/native';
 
 const Profile = () => {
     const [isEditing, setIsEditing] = useState(false);
@@ -30,9 +31,10 @@ const Profile = () => {
         lastName: '',
         fullName: '',
         email: '',
+        role: '',
     });
-
-    const { token, user } = useAuth();
+    const navigation = useNavigation();
+    const { token, user, logout } = useAuth();
 
     useEffect(() => {
         fetchUserProfile();
@@ -44,7 +46,7 @@ const Profile = () => {
             const response = await fetch(`${baseURL}/user/profile`, {
                 method: 'GET',
                 headers: {
-                    'Authorization': `Bearer ${token}`, // Implement getToken function to retrieve JWT
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 }
             });
@@ -57,9 +59,9 @@ const Profile = () => {
                     lastName: data.user.last_name,
                     fullName: `${data.user.first_name} ${data.user.last_name}`,
                     email: data.user.email,
+                    role: data.user.role || 'user',
                 });
 
-                // Set profile image if available
                 if (data.user.images && data.user.images.length > 0) {
                     setImage(data.user.images[0].url);
                 }
@@ -152,6 +154,26 @@ const Profile = () => {
             setLoading(false);
             setIsEditing(false);
         }
+    };
+
+    const handleLogout = () => {
+        Alert.alert(
+            'Logout',
+            'Are you sure you want to logout?',
+            [
+                {
+                    text: 'Cancel',
+                    style: 'cancel'
+                },
+                {
+                    text: 'Logout',
+                    onPress: () => {
+                        logout();
+                        navigation.navigate('User', { screen: 'Login' });
+                    }
+                }
+            ]
+        );
     };
 
 
@@ -293,8 +315,7 @@ const Profile = () => {
             <View style={styles.spacer} />
         </ScrollView>
     );
-
-    const renderButtons = () => (
+       const renderButtons = () => (
         <View style={styles.footer}>
             {isEditing ? (
                 <View style={styles.buttonContainer}>
@@ -306,13 +327,26 @@ const Profile = () => {
                     </TouchableOpacity>
                 </View>
             ) : (
-                <TouchableOpacity style={styles.editProfileButton} onPress={toggleEditing}>
-                    <Text style={styles.editProfileText}>EDIT PROFILE</Text>
-                </TouchableOpacity>
+                <View style={styles.verticalButtonContainer}>
+                    <TouchableOpacity 
+                        style={styles.editProfileButton} 
+                        onPress={toggleEditing}
+                    >
+                        <Text style={styles.editProfileText}>EDIT PROFILE</Text>
+                    </TouchableOpacity>
+    
+                    {userData.role === 'admin' && (
+                        <TouchableOpacity
+                            style={styles.logoutButton}
+                            onPress={handleLogout}
+                        >
+                            <Text style={styles.logoutButtonText}>LOGOUT</Text>
+                        </TouchableOpacity>
+                    )}
+                </View>
             )}
         </View>
     );
-
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor="#757575" />
@@ -482,6 +516,10 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
     },
+    verticalButtonContainer: {
+        flexDirection: 'column',
+        gap: 10, // Adds space between buttons
+    },
     cancelButton: {
         flex: 1,
         backgroundColor: '#f2f2f2',
@@ -517,6 +555,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     editProfileButton: {
+        width: '100%', // Takes full width
         backgroundColor: '#fff',
         borderWidth: 1,
         borderColor: '#333',
@@ -532,6 +571,22 @@ const styles = StyleSheet.create({
     editProfileText: {
         fontWeight: 'bold',
         color: '#333',
+    },
+    logoutButton: {
+        width: '100%', // Takes full width
+        backgroundColor: '#ff4444',
+        padding: 15,
+        borderRadius: 8,
+        alignItems: 'center',
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+    },
+    logoutButtonText: {
+        color: 'white',
+        fontWeight: 'bold',
     },
 });
 
