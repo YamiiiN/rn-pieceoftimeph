@@ -1,4 +1,3 @@
-// frontend/Screens/Product/FeedbackForm
 import React, { useState, useEffect } from 'react';
 import { 
     View, 
@@ -28,7 +27,6 @@ const FeedbackForm = ({ productId, existingReview, onSubmitSuccess }) => {
     const dispatch = useDispatch();
     const { loading, error } = useSelector(state => state.reviews);
 
-    // Set up form with existing review data if available
     useEffect(() => {
         if (existingReview) {
             setRating(existingReview.rating);
@@ -36,7 +34,6 @@ const FeedbackForm = ({ productId, existingReview, onSubmitSuccess }) => {
             setReviewId(existingReview._id);
             setIsEditing(true);
         } else {
-            // Reset form when no existing review
             setRating(0);
             setComment('');
             setReviewId(null);
@@ -82,7 +79,6 @@ const FeedbackForm = ({ productId, existingReview, onSubmitSuccess }) => {
 
         try {
             if (isEditing && reviewId) {
-                // Update existing review
                 await dispatch(updateReview(productId, reviewId, reviewData, token));
                 Toast.show({
                     type: 'success',
@@ -91,7 +87,6 @@ const FeedbackForm = ({ productId, existingReview, onSubmitSuccess }) => {
                     position: 'top',
                 });
             } else {
-                // Create new review
                 await dispatch(createReview(productId, reviewData, token));
                 Toast.show({
                     type: 'success',
@@ -101,7 +96,7 @@ const FeedbackForm = ({ productId, existingReview, onSubmitSuccess }) => {
                 });
             }
             
-            // Notify parent component that submission was successful
+            // notify parent component that submission was successful
             if (onSubmitSuccess) {
                 onSubmitSuccess();
             }

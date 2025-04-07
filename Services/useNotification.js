@@ -20,7 +20,7 @@
 // export function useNotifications() {
 //     // Get user and token directly from AuthContext
 //     const { user, token } = useAuth();
-    
+
 //     const [expoPushToken, setExpoPushToken] = useState('');
 //     const [notification, setNotification] = useState(false);
 //     const [tokenStatus, setTokenStatus] = useState({
@@ -195,16 +195,16 @@ import { useAuth } from '../Context/Auth';
 import { NotificationService } from './NotificationService';
 
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
+    handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+    }),
 });
 
 export function useNotifications() {
     const { user, token } = useAuth();
-    
+
     const [expoPushToken, setExpoPushToken] = useState('');
     const [notification, setNotification] = useState(false);
     const [tokenStatus, setTokenStatus] = useState({
@@ -251,6 +251,8 @@ export function useNotifications() {
         }
     }, [expoPushToken, token]);
 
+
+    // pinaka unang ma eexecute
     const registerForPushNotifications = async () => {
         if (!Device.isDevice) {
             console.log('Not a physical device, skipping push notifications');
@@ -279,16 +281,18 @@ export function useNotifications() {
                 return;
             }
 
-            // Get the token
+
             // console.log('Getting Expo push token...');
             const projectId = Constants.expoConfig?.extra?.eas?.projectId;
             // console.log('Using project ID:', projectId);
 
+
+            // IF GRANTED KUKUNIN PROJECT ID NG EXPO DEV
             const token = await Notifications.getExpoPushTokenAsync({
                 projectId: projectId,
             });
 
-            // console.log('Push token obtained:', token.data);
+            // KAPAG MAY NAKUHA NA ID, SSTORE NIYA DITO USING TOKEN.DATA
             setExpoPushToken(token.data);
 
             // Configure for Android
@@ -311,24 +315,24 @@ export function useNotifications() {
     };
 
     const sendPushTokenToBackend = async () => {
-        if (!expoPushToken) {
-            console.log('No push token available to send');
-            return;
-        }
-    
-        if (!token) {
-            console.log('No authentication token available');
-            return;
-        }
-    
+        // if (!expoPushToken) {
+        //     console.log('No push token available to send');
+        //     return;
+        // }
+
+        // if (!token) {
+        //     console.log('No authentication token available');
+        //     return;
+        // }
+
         try {
             console.log('Sending push token to backend:', {
                 pushToken: expoPushToken
             });
-    
+
             // Pass the authentication token as a parameter
             await NotificationService.registerPushToken(expoPushToken, token);
-            
+
             console.log('Push token registration successful');
             setTokenStatus({
                 registered: true,
@@ -338,9 +342,9 @@ export function useNotifications() {
             const errorDetail = error.response ?
                 `Status: ${error.response.status}, Data: ${JSON.stringify(error.response.data)}` :
                 `Error: ${error.message}`;
-    
+
             console.error('Error registering push token with backend:', errorDetail);
-    
+
             setTokenStatus({
                 registered: false,
                 error: errorDetail

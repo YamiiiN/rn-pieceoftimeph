@@ -1,4 +1,3 @@
-// frontend/Screens/Product/FeedbackList
 import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -12,7 +11,6 @@ const FeedbackList = ({ onEditReview }) => {
   const { user, token } = useAuth();
   const dispatch = useDispatch();
 
-  // Function to render stars based on rating
   const renderStars = (rating) => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
@@ -29,13 +27,11 @@ const FeedbackList = ({ onEditReview }) => {
     return stars;
   };
 
-  // Function to format date
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('en-US', options);
   };
 
-  // Get user name - handle different user object formats
   const getUserName = (user) => {
     if (!user) return 'Anonymous';
     
@@ -44,7 +40,7 @@ const FeedbackList = ({ onEditReview }) => {
     } else if (user.name) {
       return user.name;
     } else if (user.email) {
-      // Return email but hide part of it for privacy
+      // return email but hide part of it for privacy
       const emailParts = user.email.split('@');
       if (emailParts.length === 2) {
         const username = emailParts[0];
@@ -59,7 +55,7 @@ const FeedbackList = ({ onEditReview }) => {
     return 'User';
   };
 
-  // Check if review belongs to current user
+  // check if review belongs to current user
   const isUserReview = (reviewUserId) => {
     const currentUserId = user?._id || user?.id;
     return currentUserId && currentUserId === reviewUserId;
@@ -80,9 +76,7 @@ const FeedbackList = ({ onEditReview }) => {
     </View>
   );
 
-  // Render hidden row with action buttons
   const renderHiddenItem = ({ item }) => {
-    // Only show edit/delete options for user's own reviews
     if (!isUserReview(item.user?._id || item.user)) {
       return <View style={styles.hiddenItemContainer} />;
     }
@@ -101,7 +95,6 @@ const FeedbackList = ({ onEditReview }) => {
           style={[styles.hiddenButton, styles.deleteButton]}
           onPress={() => {
             if (user && token) {
-              // Confirm before deleting
               Alert.alert(
                 "Delete Review",
                 "Are you sure you want to delete this review?",

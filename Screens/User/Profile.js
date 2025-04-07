@@ -23,7 +23,7 @@ import { useNavigation } from '@react-navigation/native';
 
 const Profile = () => {
     const [isEditing, setIsEditing] = useState(false);
-    const [image, setImage] = useState(null);
+    const [images, setImage] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [userData, setUserData] = useState({
@@ -40,6 +40,181 @@ const Profile = () => {
         fetchUserProfile();
     }, []);
 
+    const toggleEditing = () => {
+        setIsEditing(!isEditing);
+    };
+
+    // const fetchUserProfile = async () => {
+    //     try {
+    //         setLoading(true);
+    //         const response = await fetch(`${baseURL}/user/profile`, {
+    //             method: 'GET',
+    //             headers: {
+    //                 'Authorization': `Bearer ${token}`,
+    //                 'Content-Type': 'application/json',
+    //             }
+    //         });
+
+    //         const data = await response.json();
+
+    //         if (data.user) {
+    //             setUserData({
+    //                 firstName: data.user.first_name,
+    //                 lastName: data.user.last_name,
+    //                 fullName: `${data.user.first_name} ${data.user.last_name}`,
+    //                 email: data.user.email,
+    //                 role: data.user.role || 'user',
+    //             });
+
+    //             if (data.user.images && data.user.images.length > 0) {
+    //                 setImage(data.user.images[0].url);
+    //             }
+    //         } else {
+    //             setError(data.message || 'Failed to load profile');
+    //         }
+    //     } catch (err) {
+    //         setError('Network error. Please try again later.');
+    //         console.error(err);
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
+
+    
+
+    // const saveProfile = async () => {
+    //     try {
+    //         setLoading(true);
+
+    //         console.log('Data ready to send:', {
+    //             first_name: userData.firstName,
+    //             last_name: userData.lastName,
+    //             email: userData.email,
+    //             images: images,  // Debugging
+    //         });
+
+    //         const formData = new FormData();
+    //         formData.append('first_name', userData.firstName);
+    //         formData.append('last_name', userData.lastName);
+    //         formData.append('email', userData.email);
+
+    //         if (Array.isArray(images) && images.length > 0) {
+    //             images.forEach((img, index) => {
+    //                 if (img.uri && img.uri.startsWith('file://')) {
+    //                     const fileName = img.uri.split('/').pop();
+    //                     const fileType = fileName.split('.').pop();
+
+    //                     formData.append(`images`, {
+    //                         uri: img.uri,
+    //                         name: fileName,
+    //                         type: `images/${fileType}`,
+    //                     });
+    //                 }
+    //             });
+    //         } else if (images?.uri && images.uri.startsWith('file://')) {
+    //             // If it's a single image, convert it into an array before sending
+    //             const fileName = images.uri.split('/').pop();
+    //             const fileType = fileName.split('.').pop();
+
+    //             formData.append('images', {
+    //                 uri: images.uri,
+    //                 name: fileName,
+    //                 type: `images/${fileType}`,
+    //             });
+    //         }
+
+    //         console.log('FormData before sending:', formData);
+
+    //         const response = await axios.put(`${baseURL}/user/profile/update`, formData, {
+    //             headers: {
+    //                 'Authorization': `Bearer ${token}`,
+    //                 // 'Accept': 'application/json',
+    //                 'Content-Type': 'multipart/form-data',
+    //             },
+    //         });
+
+    //         console.log('Server response:', response.data);
+
+    //         // Ensure images array is updated correctly
+    //         setUserData({
+    //             ...userData,
+    //             firstName: response.data.user.first_name,
+    //             lastName: response.data.user.last_name,
+    //             email: response.data.user.email,
+    //             images: response.data.user.images || userData.images, // ✅ Ensure updated images are reflected
+    //         });
+
+    //         Alert.alert('Success', 'Profile updated successfully.');
+
+    //         setTimeout(fetchUserProfile);
+
+    //     } catch (err) {
+    //         console.error('Profile update error:', err.response?.data || err.message);
+    //         setError('Network error. Please try again later.');
+    //         Alert.alert('Error', err.response?.data?.message || 'Network error. Please try again later.');
+    //     } finally {
+    //         setLoading(false);
+    //         setIsEditing(false);
+    //     }
+    // };
+
+    const saveProfile = async () => {
+        try {
+            setLoading(true);
+    
+            const formData = new FormData();
+            formData.append('first_name', userData.firstName);
+            formData.append('last_name', userData.lastName);
+            formData.append('email', userData.email);
+    
+            // Properly format the image for Cloudinary upload
+            if (images && typeof images === 'string' && images.startsWith('file://')) {
+                const fileName = images.split('/').pop();
+                const fileType = fileName.split('.').pop();
+                
+                formData.append('file', {
+                    uri: images,
+                    name: fileName,
+                    type: `image/${fileType}`,
+                });
+                
+                console.log('Adding image to form data with name "file":', fileName);
+            }
+    
+            console.log('FormData before sending:', formData);
+    
+            const response = await axios.put(`${baseURL}/user/profile/update`, formData, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+    
+            console.log('Server response:', response.data);
+            
+            // Since the server response shows images as [Object], let's do a full profile refresh
+            // to get the complete image URL from the server
+            setIsEditing(false);
+            
+            // Clear any cached images
+            setImage(null);
+            
+            // Fetch updated profile with a delay to ensure Cloudinary processing is complete
+            setTimeout(() => {
+                fetchUserProfile();
+            }, 1000);
+    
+            Alert.alert('Success', 'Profile updated successfully.');
+    
+        } catch (err) {
+            console.error('Profile update error:', err.response?.data || err.message);
+            setError('Network error. Please try again later.');
+            Alert.alert('Error', err.response?.data?.message || 'Network error. Please try again later.');
+        } finally {
+            setLoading(false);
+        }
+    };
+    
     const fetchUserProfile = async () => {
         try {
             setLoading(true);
@@ -50,9 +225,10 @@ const Profile = () => {
                     'Content-Type': 'application/json',
                 }
             });
-
+    
             const data = await response.json();
-
+            console.log('Profile fetch response:', data);
+    
             if (data.user) {
                 setUserData({
                     firstName: data.user.first_name,
@@ -61,101 +237,28 @@ const Profile = () => {
                     email: data.user.email,
                     role: data.user.role || 'user',
                 });
-
-                if (data.user.images && data.user.images.length > 0) {
-                    setImage(data.user.images[0].url);
+    
+                // Clear previous image and set the new one with cache busting
+                if (data.user.images && data.user.images.length > 0 && data.user.images[0].url) {
+                    const cacheBustUrl = `${data.user.images[0].url}?t=${new Date().getTime()}`;
+                    console.log('Setting new image URL with cache busting:', cacheBustUrl);
+                    setImage(cacheBustUrl);
+                } else {
+                    console.log('No image found in user data');
+                    setImage(null);
                 }
             } else {
                 setError(data.message || 'Failed to load profile');
             }
         } catch (err) {
             setError('Network error. Please try again later.');
-            console.error(err);
+            console.error('Profile fetch error:', err);
         } finally {
             setLoading(false);
         }
     };
 
-    const toggleEditing = () => {
-        setIsEditing(!isEditing);
-    };
-
-    const saveProfile = async () => {
-        try {
-            setLoading(true);
-
-            console.log('Data ready to send:', {
-                first_name: userData.firstName,
-                last_name: userData.lastName,
-                email: userData.email,
-                images: image,  // Debugging
-            });
-
-            const formData = new FormData();
-            formData.append('first_name', userData.firstName);
-            formData.append('last_name', userData.lastName);
-            formData.append('email', userData.email);
-
-            if (Array.isArray(image) && image.length > 0) {
-                image.forEach((img, index) => {
-                    if (img.uri && img.uri.startsWith('file://')) {
-                        const fileName = img.uri.split('/').pop();
-                        const fileType = fileName.split('.').pop();
-
-                        formData.append(`images`, {
-                            uri: img.uri,
-                            name: fileName,
-                            type: `image/${fileType}`,
-                        });
-                    }
-                });
-            } else if (image?.uri && image.uri.startsWith('file://')) {
-                // If it's a single image, convert it into an array before sending
-                const fileName = image.uri.split('/').pop();
-                const fileType = fileName.split('.').pop();
-
-                formData.append('images', {
-                    uri: image.uri,
-                    name: fileName,
-                    type: `image/${fileType}`,
-                });
-            }
-
-            console.log('FormData before sending:', formData);
-
-            const response = await axios.put(`${baseURL}/user/profile/update`, formData, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/json',
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
-
-            console.log('Server response:', response.data);
-
-            // Ensure images array is updated correctly
-            setUserData({
-                ...userData,
-                firstName: response.data.user.first_name,
-                lastName: response.data.user.last_name,
-                email: response.data.user.email,
-                images: response.data.user.images || userData.images, // ✅ Ensure updated images are reflected
-            });
-
-            Alert.alert('Success', 'Profile updated successfully.');
-
-            setTimeout(fetchUserProfile, 2000);
-
-        } catch (err) {
-            console.error('Profile update error:', err.response?.data || err.message);
-            setError('Network error. Please try again later.');
-            Alert.alert('Error', err.response?.data?.message || 'Network error. Please try again later.');
-        } finally {
-            setLoading(false);
-            setIsEditing(false);
-        }
-    };
-
+    
     const handleLogout = () => {
         Alert.alert(
             'Logout',
@@ -357,8 +460,8 @@ const Profile = () => {
             >
                 <View style={styles.header}>
                     <View style={styles.profileImageContainer}>
-                        {image ? (
-                            <Image source={{ uri: image }} style={styles.profileImage} />
+                        {images ? (
+                            <Image source={{ uri: images }} style={styles.profileImage} />
                         ) : (
                             <MaterialIcons name="person" size={30} color="black" />
                         )}

@@ -55,12 +55,10 @@ const SingleProduct = () => {
         item.sell_price - (item.sell_price * discount / 100) : 
         null;
 
-    // Format prices
     const formattedOriginalPrice = new Intl.NumberFormat('en-US').format(item.sell_price);
     const formattedDiscountedPrice = discountedPrice ? 
         new Intl.NumberFormat('en-US').format(discountedPrice) : null;
 
-    // Fetch reviews and check user review status when component mounts
     useEffect(() => {
         dispatch(listReviewsByProduct(item._id));
 
@@ -68,20 +66,20 @@ const SingleProduct = () => {
             dispatch(checkUserReview(item._id, token))
                 .then(review => {
                     if (review) {
-                        // User has already reviewed, don't show form
+                        // user has already reviewed, don't show form
                         setShowReviewForm(false);
                     } else {
-                        // User hasn't reviewed yet, check if they can
+                        // user hasn't reviewed yet, check if they can
                         dispatch(checkCanReview(item._id, token))
                             .then(canReviewResult => {
-                                // Only show form if user can review
+                                // only show form if user can review
                                 setShowReviewForm(canReviewResult);
                             });
                     }
                 });
         }
         
-        // Check for active promotions - using baseURL
+        // Check for active promotions
         const fetchPromotions = async () => {
             try {
                 const res = await axios.get(`${baseURL}/promotions`);
@@ -145,7 +143,6 @@ const SingleProduct = () => {
             // Add to SQLite DB with the found user ID
             await addToCartDB(userId, cartItem, quantity);
 
-            // Also dispatch to Redux for state management
             dispatch(addToCart(cartItem));
 
             Toast.show({

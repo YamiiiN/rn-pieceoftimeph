@@ -264,7 +264,6 @@ const TrackOrder = ({ route, navigation }) => {
     );
 };
 
-// Helper function to get status descriptions
 const getStatusDescription = (status) => {
     switch (status) {
         case 'Pending':
